@@ -1,2 +1,3 @@
 [build]
-  dockerfile = "Dockerfile"
+dockerComposeFile = "docker-compose.yml"
+dockerComposeService = "app"

@@ -1,29 +1,38 @@
-# Gunakan image PHP 8.4
-FROM php:8.4-fpm
+FROM php:8.4-fpm-alpine
 
-# Instal ekstensi yang dibutuhkan
-RUN apt-get update && apt-get install -y \
-    libzip-dev zip unzip git \
-    && docker-php-ext-install pdo pdo_mysql zip
+# Install nginx and supervisor
+RUN apk add --no-cache nginx supervisor nodejs npm
 
-# Set working directory
-WORKDIR /var/www/html
+# Install PHP extensions
+RUN docker-php-ext-install pdo pdo_mysql opcache
 
-# Copy semua file
-COPY . .
-
-# Instal composer
+# Install composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Install dependencies Laravel
+WORKDIR /var/www/html
+
+# Copy application files first
+COPY . .
+
+# Install composer dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Generate app key dan link storage
-RUN php artisan key:generate \
- && php artisan storage:link
+# Install npm dependencies and build
+RUN npm install
 
-# Expose PORT dari Railway
-EXPOSE $PORT
+# Build frontend assets
+RUN npm run build
 
-# Start Laravel
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=$PORT"]
+# Copy config files
+COPY docker/nginx.conf /etc/nginx/nginx.conf
+COPY docker/supervisord.conf /etc/supervisord.conf
+COPY docker/start.sh /start.sh
+
+# Set permissions and prepare for SQLite
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 storage bootstrap/cache \
+    && chmod +x /start.sh
+
+EXPOSE 80
+
+CMD ["/start.sh"]
