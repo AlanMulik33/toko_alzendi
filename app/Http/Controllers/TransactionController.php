@@ -30,10 +30,11 @@ class TransactionController extends Controller
         $request->validate([
             'customer_id' => 'required|exists:customers,id',
             'total' => 'required|numeric|min:0',
-            'items' => 'required'
+            'items' => 'required',
+            'payment_method' => 'required|in:cash,qris'
         ]);
 
-        DB::transaction(function() use ($request) {
+        $trx = DB::transaction(function() use ($request) {
             // Parse items jika string JSON
             $items = is_string($request->items) ? json_decode($request->items, true) : $request->items;
             
@@ -54,7 +55,8 @@ class TransactionController extends Controller
             $trx = Transaction::create([
                 'customer_id' => $request->customer_id,
                 'date' => now(),
-                'total' => $total > 0 ? $total : (float)$request->total
+                'total' => $total > 0 ? $total : (float)$request->total,
+                'payment_method' => $request->payment_method
             ]);
 
             // Buat detail transaksi dan update stock
@@ -78,15 +80,23 @@ class TransactionController extends Controller
                     $product->decrement('stock', (int)$item['qty']);
                 }
             }
+            
+            return $trx;
         });
 
-        return redirect()->route('transactions.index')->with('success', 'Transaksi berhasil dibuat');
+        return redirect()->route('transactions.nota', $trx->id)->with('success', 'Transaksi berhasil dibuat');
     }
 
     public function show(string $id)
     {
         $transaction = Transaction::with('customer', 'details.product')->findOrFail($id);
         return view('transactions.show', compact('transaction'));
+    }
+
+    public function nota(string $id)
+    {
+        $transaction = Transaction::with('customer', 'details.product')->findOrFail($id);
+        return view('transactions.nota', compact('transaction'));
     }
 
     public function destroy(string $id)

@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 class Transaction extends Model {
-    protected $fillable = ['customer_id', 'date', 'total', 'notes'];
+    protected $fillable = ['customer_id', 'date', 'total', 'payment_method', 'notes'];
     protected $casts = [
         'date' => 'datetime',
         'total' => 'decimal:2',

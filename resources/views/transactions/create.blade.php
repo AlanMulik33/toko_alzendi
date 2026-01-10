@@ -60,6 +60,26 @@
                 </div>
             </div>
 
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Metode Pembayaran</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="payment_method" id="paymentCash" value="cash" checked>
+                            <label class="form-check-label" for="paymentCash">
+                                💵 Cash (Tunai)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="payment_method" id="paymentQris" value="qris">
+                            <label class="form-check-label" for="paymentQris">
+                                📱 QRIS
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <input type="hidden" id="totalInput" name="total" value="0">
             <input type="hidden" id="itemsInput" name="items" value="[]">
 

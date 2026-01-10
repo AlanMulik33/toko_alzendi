@@ -20,9 +20,6 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('transactions.index') }}">Transaksi</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('report.chart') }}">Grafik</a>
-                </li>
             </ul>
         </div>
     </div>

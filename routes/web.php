@@ -9,8 +9,8 @@ use App\Http\Controllers\CategoryController;
 
 
 Route::resource('products', ProductController::class);
-Route::get('/report/chart', [ReportController::class, 'chart'])->name('report.chart');
 Route::resource('transactions', TransactionController::class);
+Route::get('/transactions/{id}/nota', [TransactionController::class, 'nota'])->name('transactions.nota');
 Route::get('/report/transactions/pdf', [ReportController::class, 'transactionsPdf'])->name('report.transactions.pdf');
 Route::resource('customers', CustomerController::class);
 Route::resource('categories', CategoryController::class);
