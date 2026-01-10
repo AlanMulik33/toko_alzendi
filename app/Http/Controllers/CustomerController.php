@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Customer;
 
 class CustomerController extends Controller
 {
@@ -11,7 +12,8 @@ class CustomerController extends Controller
      */
     public function index()
     {
-        //
+        $customers = Customer::paginate(15);
+        return view('customers.index', compact('customers'));
     }
 
     /**
@@ -19,7 +21,7 @@ class CustomerController extends Controller
      */
     public function create()
     {
-        //
+        return view('customers.create');
     }
 
     /**
@@ -27,7 +29,14 @@ class CustomerController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name'=>'required',
+            'email'=>'required|email|unique:customers',
+            'phone'=>'required',
+            'address'=>'required'
+        ]);
+        Customer::create($request->all());
+        return redirect()->route('customers.index');
     }
 
     /**
@@ -35,7 +44,8 @@ class CustomerController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $customer = Customer::findOrFail($id);
+        return view('customers.show', compact('customer'));
     }
 
     /**
@@ -43,7 +53,8 @@ class CustomerController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $customer = Customer::findOrFail($id);
+        return view('customers.edit', compact('customer'));
     }
 
     /**
@@ -51,7 +62,14 @@ class CustomerController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $request->validate([
+            'name'=>'required',
+            'email'=>'required|email|unique:customers,email,'.$id,
+            'phone'=>'required',
+            'address'=>'required'
+        ]);
+        Customer::findOrFail($id)->update($request->all());
+        return redirect()->route('customers.index');
     }
 
     /**
@@ -59,6 +77,7 @@ class CustomerController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        Customer::findOrFail($id)->delete();
+        return redirect()->route('customers.index');
     }
 }

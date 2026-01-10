@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CategoryController;
 
 
 Route::resource('products', ProductController::class);

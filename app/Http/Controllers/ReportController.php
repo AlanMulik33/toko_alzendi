@@ -4,10 +4,16 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Transaction;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 class ReportController extends Controller
 {
-    $pdf = PDF::loadView('reports.transactions', compact('transactions'));
-    return $pdf->download('laporan-transaksi.pdf');
+    public function transactionsPdf()
+    {
+        $transactions = Transaction::with('customer', 'details.product')->get();
+        $pdf = Pdf::loadView('reports.transactions', compact('transactions'));
+        return $pdf->download('laporan-transaksi.pdf');
+    }
 
     public function chart()
     {
