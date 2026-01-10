@@ -59,7 +59,7 @@
 
 <script>
 let rowCount = 0;
-const products = {!! json_encode($products->map(fn($p) => ['id' => $p->id, 'name' => $p->name, 'price' => $p->price])->values()) !!};
+const products = {!! json_encode($products->map(fn($p) => ['id' => $p->id, 'name' => $p->name, 'price' => (float)$p->price])->values()) !!};
 
 function addItem() {
     rowCount++;
@@ -67,14 +67,14 @@ function addItem() {
     row.id = 'row_' + rowCount;
     row.innerHTML = `
         <td>
-            <select class="form-control product-select" onchange="updateSubtotal(${rowCount})">
+            <select class="form-control product-select" data-row="${rowCount}" onchange="updateSubtotal(${rowCount})">
                 <option value="">-- Pilih Produk --</option>
-                ${products.map(p => `<option value="${p.id}" data-price="${p.price}">${p.name} (Rp ${p.price.toLocaleString()})</option>`).join('')}
+                ${products.map(p => `<option value="${p.id}" data-price="${p.price}">${p.name} (Rp ${parseFloat(p.price).toLocaleString('id-ID')})</option>`).join('')}
             </select>
         </td>
-        <td><input type="number" class="form-control price-${rowCount}" readonly></td>
-        <td><input type="number" class="form-control qty-${rowCount}" value="1" min="1" onchange="updateSubtotal(${rowCount})"></td>
-        <td><input type="number" class="form-control subtotal-${rowCount}" readonly></td>
+        <td><input type="number" class="form-control price-input price-${rowCount}" readonly></td>
+        <td><input type="number" class="form-control qty-input qty-${rowCount}" value="1" min="1" onchange="updateSubtotal(${rowCount})"></td>
+        <td><input type="number" class="form-control subtotal-input subtotal-${rowCount}" readonly></td>
         <td><button type="button" class="btn btn-danger btn-sm" onclick="removeItem(${rowCount})">Hapus</button></td>
     `;
     document.getElementById('itemsBody').appendChild(row);
@@ -82,8 +82,15 @@ function addItem() {
 
 function updateSubtotal(rowNum) {
     const select = document.querySelector(`#row_${rowNum} .product-select`);
-    const price = select.options[select.selectedIndex].dataset.price || 0;
-    const qty = document.querySelector(`.qty-${rowNum}`).value;
+    if (!select.value) {
+        document.querySelector(`.price-${rowNum}`).value = 0;
+        document.querySelector(`.subtotal-${rowNum}`).value = 0;
+        calculateTotal();
+        return;
+    }
+    
+    const price = parseFloat(select.options[select.selectedIndex].dataset.price) || 0;
+    const qty = parseFloat(document.querySelector(`.qty-${rowNum}`).value) || 0;
     const subtotal = price * qty;
 
     document.querySelector(`.price-${rowNum}`).value = price;
@@ -93,51 +100,69 @@ function updateSubtotal(rowNum) {
 }
 
 function removeItem(rowNum) {
-    document.getElementById('row_' + rowNum).remove();
+    const row = document.getElementById('row_' + rowNum);
+    if(row) {
+        row.remove();
+    }
     calculateTotal();
 }
 
 function calculateTotal() {
     let total = 0;
-    document.querySelectorAll('.subtotal-' + document.querySelectorAll('tr[id^="row_"]').length + ', [class^="subtotal-"]').forEach(el => {
-        if(el.value) total += parseFloat(el.value);
-    });
-
-    for(let i = 1; i <= rowCount; i++) {
-        const elem = document.querySelector(`.subtotal-${i}`);
-        if(elem && elem.value) total += parseFloat(elem.value);
-    }
-
-    total = 0;
+    
+    // Hitung semua subtotal
     document.querySelectorAll('[class^="subtotal-"]').forEach(el => {
-        if(el.value) total += parseFloat(el.value);
-    });
-
-    document.getElementById('totalAmount').textContent = total.toLocaleString();
-    document.getElementById('totalInput').value = total;
-
-    const items = [];
-    document.querySelectorAll('tr[id^="row_"]').forEach(row => {
-        const select = row.querySelector('.product-select');
-        const qty = row.querySelector('[class^="qty-"]').value;
-        const price = row.querySelector('[class^="price-"]').value;
-        
-        if(select.value) {
-            items.push({
-                product_id: select.value,
-                qty: qty,
-                price: price
-            });
+        const value = parseFloat(el.value) || 0;
+        if(value > 0) {
+            total += value;
         }
     });
 
+    // Update tampilan dengan format Rupiah
+    const formatter = new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    document.getElementById('totalAmount').textContent = formatter.format(total);
+    document.getElementById('totalInput').value = total;
+
+    // Kumpulkan items untuk submit
+    const items = [];
+    let rowNum = 1;
+    while(document.querySelector(`.qty-${rowNum}`)) {
+        const select = document.querySelector(`#row_${rowNum} .product-select`);
+        const qty = document.querySelector(`.qty-${rowNum}`).value;
+        const price = document.querySelector(`.price-${rowNum}`).value;
+        
+        if(select && select.value && qty > 0 && price > 0) {
+            items.push({
+                product_id: parseInt(select.value),
+                qty: parseInt(qty),
+                price: parseFloat(price)
+            });
+        }
+        rowNum++;
+    }
+
     document.getElementById('itemsInput').value = JSON.stringify(items);
+    
+    // Debug
+    console.log('Items count:', items.length);
+    console.log('Total calculated:', total);
+    console.log('Items:', items);
 }
 
 document.getElementById('transactionForm').addEventListener('submit', function(e) {
-    if(document.querySelectorAll('tr[id^="row_"]').length === 0) {
+    const itemsInput = document.getElementById('itemsInput').value;
+    const items = JSON.parse(itemsInput);
+    const total = parseFloat(document.getElementById('totalInput').value);
+    
+    if(items.length === 0) {
         e.preventDefault();
         alert('Tambahkan minimal 1 item');
+        return;
+    }
+    
+    if(total <= 0) {
+        e.preventDefault();
+        alert('Total harus lebih dari 0');
         return;
     }
 });

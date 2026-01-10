@@ -22,8 +22,8 @@
         <tr>
             <td>{{ $trx->id }}</td>
             <td>{{ $trx->customer->name }}</td>
-            <td>{{ $trx->date->format('d-m-Y H:i') }}</td>
-            <td>Rp {{ number_format($trx->total, 0, ',', '.') }}</td>
+            <td>{{ is_string($trx->date) ? \Carbon\Carbon::parse($trx->date)->format('d-m-Y H:i') : $trx->date->format('d-m-Y H:i') }}</td>
+            <td>Rp {{ number_format((float)$trx->total, 0, ',', '.') }}</td>
             <td>
                 <a href="{{ route('transactions.show', $trx->id) }}" class="btn btn-sm btn-info">Lihat</a>
                 <form action="{{ route('transactions.destroy', $trx->id) }}" method="POST" style="display:inline">

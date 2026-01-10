@@ -11,7 +11,7 @@
                 <div class="row">
                     <div class="col-md-6">
                         <p><strong>Pelanggan:</strong> {{ $transaction->customer->name }}</p>
-                        <p><strong>Tanggal:</strong> {{ $transaction->date->format('d-m-Y H:i:s') }}</p>
+                        <p><strong>Tanggal:</strong> {{ is_string($transaction->date) ? \Carbon\Carbon::parse($transaction->date)->format('d-m-Y H:i:s') : $transaction->date->format('d-m-Y H:i:s') }}</p>
                     </div>
                 </div>
 

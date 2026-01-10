@@ -26,27 +26,61 @@ class TransactionController extends Controller
 
     public function store(Request $request)
     {
+        // Validasi
+        $request->validate([
+            'customer_id' => 'required|exists:customers,id',
+            'total' => 'required|numeric|min:0',
+            'items' => 'required'
+        ]);
+
         DB::transaction(function() use ($request) {
+            // Parse items jika string JSON
+            $items = is_string($request->items) ? json_decode($request->items, true) : $request->items;
+            
+            // Validasi ada items
+            if(empty($items)) {
+                throw new \Exception('Minimal 1 item harus ditambahkan');
+            }
+
+            // Hitung total dari items
+            $total = 0;
+            foreach($items as $item) {
+                if(!empty($item['price']) && !empty($item['qty'])) {
+                    $total += (float)$item['price'] * (int)$item['qty'];
+                }
+            }
+
+            // Buat transaksi
             $trx = Transaction::create([
-                'customer_id'=>$request->customer_id,
-                'date'=>now(),
-                'total'=>$request->total
+                'customer_id' => $request->customer_id,
+                'date' => now(),
+                'total' => $total > 0 ? $total : (float)$request->total
             ]);
 
-            foreach($request->items as $item){
+            // Buat detail transaksi dan update stock
+            foreach($items as $item) {
+                // Validasi item
+                if(empty($item['product_id']) || empty($item['qty']) || empty($item['price'])) {
+                    continue;
+                }
+
+                // Buat detail
                 TransactionDetail::create([
-                    'transaction_id'=>$trx->id,
-                    'product_id'=>$item['product_id'],
-                    'qty'=>$item['qty'],
-                    'price'=>$item['price']
+                    'transaction_id' => $trx->id,
+                    'product_id' => (int)$item['product_id'],
+                    'qty' => (int)$item['qty'],
+                    'price' => (float)$item['price']
                 ]);
 
-                Product::where('id',$item['product_id'])
-                    ->decrement('stock', $item['qty']);
+                // Update stock produk
+                $product = Product::find((int)$item['product_id']);
+                if($product) {
+                    $product->decrement('stock', (int)$item['qty']);
+                }
             }
         });
 
-        return redirect()->route('transactions.index');
+        return redirect()->route('transactions.index')->with('success', 'Transaksi berhasil dibuat');
     }
 
     public function show(string $id)
@@ -57,7 +91,21 @@ class TransactionController extends Controller
 
     public function destroy(string $id)
     {
-        Transaction::findOrFail($id)->delete();
-        return redirect()->route('transactions.index');
+        $transaction = Transaction::with('details')->findOrFail($id);
+        
+        DB::transaction(function() use ($transaction) {
+            // Restore stock untuk setiap detail
+            foreach($transaction->details as $detail) {
+                $product = Product::find($detail->product_id);
+                if($product) {
+                    $product->increment('stock', $detail->qty);
+                }
+            }
+            
+            // Hapus transaksi (detail akan terhapus otomatis via cascade)
+            $transaction->delete();
+        });
+
+        return redirect()->route('transactions.index')->with('success', 'Transaksi berhasil dihapus');
     }
 }
