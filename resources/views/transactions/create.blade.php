@@ -12,13 +12,18 @@
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label for="customer_id" class="form-label">Pelanggan</label>
-                        <select class="form-control @error('customer_id') is-invalid @enderror" id="customer_id" name="customer_id" required>
-                            <option value="">-- Pilih Pelanggan --</option>
-                            @foreach($customers as $cust)
-                            <option value="{{ $cust->id }}">{{ $cust->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('customer_id')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                        @if(auth('customer')->check())
+                            <input type="text" class="form-control" value="{{ auth('customer')->user()->name }}" readonly>
+                            <input type="hidden" name="customer_id" value="{{ auth('customer')->id() }}">
+                        @else
+                            <select class="form-control @error('customer_id') is-invalid @enderror" id="customer_id" name="customer_id" required>
+                                <option value="">-- Pilih Pelanggan --</option>
+                                @foreach($customers as $cust)
+                                <option value="{{ $cust->id }}">{{ $cust->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('customer_id')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                        @endif
                     </div>
                 </div>
             </div>

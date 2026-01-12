@@ -13,26 +13,41 @@ class TransactionController extends Controller
 {
     public function index()
     {
-        $transactions = Transaction::with('customer')->paginate(15);
+        if (auth('customer')->check()) {
+            $transactions = Transaction::where('customer_id', auth('customer')->id())->with('customer')->paginate(15);
+        } else {
+            $transactions = Transaction::with('customer')->paginate(15);
+        }
         return view('transactions.index', compact('transactions'));
     }
 
     public function create()
     {
-        $customers = Customer::all();
+        $customers = auth('customer')->check() ? [] : Customer::all();
         $products = Product::all();
         return view('transactions.create', compact('customers', 'products'));
     }
 
     public function store(Request $request)
     {
+        // Tentukan customer_id berdasarkan guard
+        $customer_id = null;
+        if (auth('customer')->check()) {
+            $customer_id = auth('customer')->id();
+        } else {
+            $customer_id = $request->customer_id;
+        }
+
         // Validasi
-        $request->validate([
-            'customer_id' => 'required|exists:customers,id',
+        $rules = [
             'total' => 'required|numeric|min:0',
             'items' => 'required',
             'payment_method' => 'required|in:cash,qris'
-        ]);
+        ];
+        if (!$customer_id) {
+            $rules['customer_id'] = 'required|exists:customers,id';
+        }
+        $request->validate($rules);
 
         $trx = DB::transaction(function() use ($request) {
             // Parse items jika string JSON
@@ -53,7 +68,7 @@ class TransactionController extends Controller
 
             // Buat transaksi
             $trx = Transaction::create([
-                'customer_id' => $request->customer_id,
+                'customer_id' => $customer_id,
                 'date' => now(),
                 'total' => $total > 0 ? $total : (float)$request->total,
                 'payment_method' => $request->payment_method
