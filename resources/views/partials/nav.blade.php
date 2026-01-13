@@ -8,7 +8,7 @@
 
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
-                @auth('web') <!-- Admin -->
+                @auth <!-- Admin (default guard 'web') -->
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('admin.dashboard') }}">Dashboard Admin</a>
                     </li>
@@ -51,9 +51,9 @@
             <ul class="navbar-nav">
                 @auth
                     <li class="nav-item">
-                        @if(auth('web')->check())
+                        @if(auth()->guard('web')->check())
                             <a class="nav-link" href="{{ route('admin.logout') }}">Logout Admin</a>
-                        @elseif(auth('customer')->check())
+                        @elseif(auth()->guard('customer')->check())
                             <a class="nav-link" href="{{ route('customer.logout') }}">Logout Customer</a>
                         @endif
                     </li>
