@@ -57,12 +57,10 @@ class TransactionController extends Controller
             \Log::info('Validation passed');
 
             $trx = DB::transaction(function() use ($request, $customer_id) {
-                dd('Inside DB transaction', $request->all()); // Debug
-                
                 // Parse items jika string JSON
                 $items = is_string($request->items) ? json_decode($request->items, true) : $request->items;
                 
-                \Log::info('Items parsed', ['items' => $items]);
+                dd('Items parsed', $items); // Debug
                 
                 // Validasi ada items
                 if(empty($items)) {
