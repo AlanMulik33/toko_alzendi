@@ -39,7 +39,7 @@ Route::middleware('auth:customer')->group(function(){
 });
 
 // Admin-only routes
-Route::middleware(['auth', 'is_admin'])->group(function () {
+Route::middleware(['auth:web', 'is_admin'])->group(function () {
     Route::get('/admin/dashboard', function () {
         return view('admin.dashboard');
     })->name('admin.dashboard');
