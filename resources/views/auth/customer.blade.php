@@ -27,8 +27,8 @@
                         <form method="POST" action="{{ route('customer.login') }}">
                             @csrf
                             <div class="mb-3">
-                                <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" name="email" required>
+                                <label for="login" class="form-label">Username or Email</label>
+                                <input type="text" class="form-control" id="login" name="login" required>
                             </div>
                             <div class="mb-3">
                                 <label for="password" class="form-label">Password</label>

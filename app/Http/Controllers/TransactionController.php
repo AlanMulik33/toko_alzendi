@@ -129,12 +129,24 @@ class TransactionController extends Controller
     public function show(string $id)
     {
         $transaction = Transaction::with('customer', 'details.product')->findOrFail($id);
+        
+        // Authorization: customer hanya bisa lihat transaksi miliknya sendiri
+        if (auth('customer')->check() && $transaction->customer_id !== auth('customer')->id()) {
+            abort(403, 'Unauthorized');
+        }
+        
         return view('transactions.show', compact('transaction'));
     }
 
     public function nota(string $id)
     {
         $transaction = Transaction::with('customer', 'details.product')->findOrFail($id);
+        
+        // Authorization: customer hanya bisa lihat nota transaksinya sendiri
+        if (auth('customer')->check() && $transaction->customer_id !== auth('customer')->id()) {
+            abort(403, 'Unauthorized');
+        }
+        
         return view('transactions.nota', compact('transaction'));
     }
 
@@ -155,6 +167,6 @@ class TransactionController extends Controller
             $transaction->delete();
         });
 
-        return redirect()->route('transactions.index')->with('success', 'Transaksi berhasil dihapus');
+        return redirect()->route(auth('customer')->check() ? 'transactions.index' : 'admin.transactions.index')->with('success', 'Transaksi berhasil dihapus');
     }
 }

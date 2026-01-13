@@ -35,6 +35,7 @@ Route::middleware('auth:customer')->group(function(){
     Route::get('/transactions', [TransactionController::class,'index'])->name('transactions.index');
     Route::post('/transactions', [TransactionController::class,'store'])->name('transactions.store');
     Route::get('/transactions/create', [TransactionController::class,'create'])->name('transactions.create');
+    Route::get('/transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
     Route::get('/transactions/{id}/nota', [TransactionController::class, 'nota'])->name('transactions.nota');
 });
 
@@ -46,7 +47,12 @@ Route::middleware(['auth:web', 'is_admin'])->group(function () {
     // Admin dapat mengelola produk, kategori, dan melihat semua transaksi
     Route::resource('products', ProductController::class);
     Route::resource('categories', CategoryController::class);
-    Route::resource('transactions', TransactionController::class)->except(['store', 'create']); // Admin tidak bisa buat transaksi baru
+    // Admin transaction routes (manual untuk menghindari konflik dengan customer routes)
+    Route::get('/admin/transactions', [TransactionController::class,'index'])->name('admin.transactions.index');
+    Route::get('/admin/transactions/{transaction}', [TransactionController::class,'show'])->name('admin.transactions.show');
+    Route::get('/admin/transactions/{transaction}/edit', [TransactionController::class,'edit'])->name('admin.transactions.edit');
+    Route::put('/admin/transactions/{transaction}', [TransactionController::class,'update'])->name('admin.transactions.update');
+    Route::delete('/admin/transactions/{transaction}', [TransactionController::class,'destroy'])->name('admin.transactions.destroy');
     Route::get('/report/transactions/pdf', [ReportController::class, 'transactionsPdf'])->name('report.transactions.pdf');
 });
 

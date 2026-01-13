@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
-        <a class="navbar-brand" href="/">Toko Retail</a>
+        <a class="navbar-brand" href="/">Toko Alzendi</a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
@@ -19,7 +19,7 @@
                         <a class="nav-link" href="{{ route('categories.index') }}">Manage Categories</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('transactions.index') }}">View Transactions</a>
+                        <a class="nav-link" href="{{ route('admin.transactions.index') }}">View Transactions</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('report.transactions.pdf') }}">Report PDF</a>

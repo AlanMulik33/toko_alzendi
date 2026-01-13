@@ -17,6 +17,7 @@ class Customer extends Authenticatable {
     // Masukkan hanya kolom yang boleh di-mass-assign
     protected $fillable = [
         'name',
+        'username',
         'email',
         'phone',
         'address',
@@ -25,7 +26,8 @@ class Customer extends Authenticatable {
 
     // Sembunyikan password dari array/json
     protected $hidden = [
-        'password'
+        'password',
+        'remember_token'
     ];
 
     // Jika ingin otomatis hash saat set password lewat mass assignment:

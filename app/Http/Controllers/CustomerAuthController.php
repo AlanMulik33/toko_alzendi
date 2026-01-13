@@ -19,13 +19,23 @@ class CustomerAuthController extends Controller
     }
 
     public function login(Request $request) {
-        $credentials = $request->only('email','password');
+        $request->validate([
+            'login' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        $loginField = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        $credentials = [
+            $loginField => $request->login,
+            'password' => $request->password,
+        ];
 
         if (Auth::guard('customer')->attempt($credentials, $request->filled('remember'))) {
             return redirect()->intended(route('customer.dashboard'));
         }
 
-        return back()->withErrors(['email' => 'Email or password incorrect']);
+        return back()->withErrors(['login' => 'Username/Email or password incorrect']);
     }
 
     public function logout(Request $request) {
@@ -38,6 +48,7 @@ class CustomerAuthController extends Controller
     public function register(Request $request) {
         $data = $request->validate([
             'name'=>'required',
+            'username'=>'required|unique:customers,username',
             'email'=>'required|email|unique:customers,email',
             'password'=>'required|min:6|confirmed',
         ]);
