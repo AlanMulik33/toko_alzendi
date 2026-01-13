@@ -52,9 +52,15 @@
                 @auth
                     <li class="nav-item">
                         @if(auth()->guard('web')->check())
-                            <a class="nav-link" href="{{ route('admin.logout') }}">Logout Admin</a>
+                            <form action="{{ route('admin.logout') }}" method="POST" class="d-inline">
+                                @csrf
+                                <button type="submit" class="btn btn-link nav-link">Logout Admin</button>
+                            </form>
                         @elseif(auth()->guard('customer')->check())
-                            <a class="nav-link" href="{{ route('customer.logout') }}">Logout Customer</a>
+                            <form action="{{ route('customer.logout') }}" method="POST" class="d-inline">
+                                @csrf
+                                <button type="submit" class="btn btn-link nav-link">Logout Customer</button>
+                            </form>
                         @endif
                     </li>
                 @endauth
