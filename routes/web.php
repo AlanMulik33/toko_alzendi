@@ -9,12 +9,10 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\AdminAuthController;
 
-Route::resource('products', ProductController::class);
-Route::resource('transactions', TransactionController::class);
-Route::get('/transactions/{id}/nota', [TransactionController::class, 'nota'])->name('transactions.nota');
-Route::get('/report/transactions/pdf', [ReportController::class, 'transactionsPdf'])->name('report.transactions.pdf');
-Route::resource('customers', CustomerController::class);
-Route::resource('categories', CategoryController::class);
+// Public routes (guest only)
+Route::get('/', function () {
+    return view('welcome');
+});
 
 // Admin auth
 Route::get('admin/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
@@ -33,8 +31,11 @@ Route::middleware('auth:customer')->group(function(){
     Route::get('/customer/dashboard', function () {
         return view('customer.dashboard');
     })->name('customer.dashboard');
-    // route transaksi yang hanya boleh diakses pelanggan login
+    // Customer dapat melihat transaksi miliknya dan membuat transaksi baru
+    Route::get('/transactions', [TransactionController::class,'index'])->name('transactions.index');
     Route::post('/transactions', [TransactionController::class,'store'])->name('transactions.store');
+    Route::get('/transactions/create', [TransactionController::class,'create'])->name('transactions.create');
+    Route::get('/transactions/{id}/nota', [TransactionController::class, 'nota'])->name('transactions.nota');
 });
 
 // Admin-only routes
@@ -42,9 +43,14 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::get('/admin/dashboard', function () {
         return view('admin.dashboard');
     })->name('admin.dashboard');
+    // Admin dapat mengelola produk, kategori, pelanggan, dan melihat semua transaksi
     Route::resource('products', ProductController::class);
     Route::resource('categories', CategoryController::class);
     Route::resource('customers', CustomerController::class);
+    Route::resource('transactions', TransactionController::class)->except(['store', 'create']); // Admin tidak bisa buat transaksi baru
+    Route::resource('categories', CategoryController::class);
+    Route::resource('customers', CustomerController::class);
+    Route::resource('transactions', TransactionController::class)->except(['store', 'create']); // Admin tidak bisa buat transaksi baru
     Route::get('/report/transactions/pdf', [ReportController::class, 'transactionsPdf'])->name('report.transactions.pdf');
 });
 
