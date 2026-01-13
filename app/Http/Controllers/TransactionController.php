@@ -30,6 +30,9 @@ class TransactionController extends Controller
 
     public function store(Request $request)
     {
+        // Debug
+        \Log::info('Transaction store called', $request->all());
+
         // Tentukan customer_id berdasarkan guard
         $customer_id = null;
         if (auth('customer')->check()) {
@@ -37,6 +40,8 @@ class TransactionController extends Controller
         } else {
             $customer_id = $request->customer_id;
         }
+
+        \Log::info('Customer ID determined', ['customer_id' => $customer_id]);
 
         // Validasi
         $rules = [

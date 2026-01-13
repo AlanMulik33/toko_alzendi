@@ -14,7 +14,7 @@
                         <label for="customer_id" class="form-label">Pelanggan</label>
                         @if(auth('customer')->check())
                             <input type="text" class="form-control" value="{{ auth('customer')->user()->name }}" readonly>
-                            <input type="hidden" name="customer_id" value="{{ auth('customer')->id() }}">
+                            <input type="hidden" id="customer_id_hidden" name="customer_id" value="{{ auth('customer')->id() }}">
                         @else
                             <select class="form-control @error('customer_id') is-invalid @enderror" id="customer_id" name="customer_id" required>
                                 <option value="">-- Pilih Pelanggan --</option>
@@ -219,17 +219,23 @@ function updateTotal() {
 
 // Form submit validation
 document.getElementById('transactionForm').addEventListener('submit', function(e) {
-    const customerSelect = document.getElementById('customer_id');
+    let customerValue = '';
+    @if(auth('customer')->check())
+        customerValue = document.getElementById('customer_id_hidden').value;
+    @else
+        customerValue = document.getElementById('customer_id').value;
+    @endif
+    
     const itemsInput = document.getElementById('itemsInput').value;
     const totalInput = document.getElementById('totalInput').value;
     
     console.log('=== FORM SUBMIT ===');
-    console.log('Customer:', customerSelect.value);
+    console.log('Customer:', customerValue);
     console.log('Total:', totalInput);
     console.log('Items:', itemsInput);
     
     // Validasi customer
-    if (!customerSelect.value) {
+    if (!customerValue) {
         e.preventDefault();
         alert('❌ Pilih pelanggan terlebih dahulu');
         return;
