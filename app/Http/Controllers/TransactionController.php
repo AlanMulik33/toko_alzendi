@@ -49,57 +49,67 @@ class TransactionController extends Controller
         }
         $request->validate($rules);
 
-        $trx = DB::transaction(function() use ($request) {
-            // Parse items jika string JSON
-            $items = is_string($request->items) ? json_decode($request->items, true) : $request->items;
-            
-            // Validasi ada items
-            if(empty($items)) {
-                throw new \Exception('Minimal 1 item harus ditambahkan');
-            }
-
-            // Hitung total dari items
-            $total = 0;
-            foreach($items as $item) {
-                if(!empty($item['price']) && !empty($item['qty'])) {
-                    $total += (float)$item['price'] * (int)$item['qty'];
-                }
-            }
-
-            // Buat transaksi
-            $trx = Transaction::create([
-                'customer_id' => $customer_id,
-                'date' => now(),
-                'total' => $total > 0 ? $total : (float)$request->total,
-                'payment_method' => $request->payment_method
-            ]);
-
-            // Buat detail transaksi dan update stock
-            foreach($items as $item) {
-                // Validasi item
-                if(empty($item['product_id']) || empty($item['qty']) || empty($item['price'])) {
-                    continue;
+        try {
+            $trx = DB::transaction(function() use ($request) {
+                // Parse items jika string JSON
+                $items = is_string($request->items) ? json_decode($request->items, true) : $request->items;
+                
+                // Validasi ada items
+                if(empty($items)) {
+                    throw new \Exception('Minimal 1 item harus ditambahkan');
                 }
 
-                // Buat detail
-                TransactionDetail::create([
-                    'transaction_id' => $trx->id,
-                    'product_id' => (int)$item['product_id'],
-                    'qty' => (int)$item['qty'],
-                    'price' => (float)$item['price']
+                // Hitung total dari items
+                $total = 0;
+                foreach($items as $item) {
+                    if(!empty($item['price']) && !empty($item['qty'])) {
+                        $total += (float)$item['price'] * (int)$item['qty'];
+                    }
+                }
+
+                // Buat transaksi
+                $trx = Transaction::create([
+                    'customer_id' => $customer_id,
+                    'date' => now(),
+                    'total' => $total > 0 ? $total : (float)$request->total,
+                    'payment_method' => $request->payment_method
                 ]);
 
-                // Update stock produk
-                $product = Product::find((int)$item['product_id']);
-                if($product) {
+                // Buat detail transaksi dan update stock
+                foreach($items as $item) {
+                    // Validasi item
+                    if(empty($item['product_id']) || empty($item['qty']) || empty($item['price'])) {
+                        continue;
+                    }
+
+                    // Cek stock produk
+                    $product = Product::find((int)$item['product_id']);
+                    if(!$product) {
+                        throw new \Exception('Produk tidak ditemukan: ' . $item['product_id']);
+                    }
+                    if($product->stock < (int)$item['qty']) {
+                        throw new \Exception('Stock tidak cukup untuk produk: ' . $product->name . ' (tersedia: ' . $product->stock . ', diminta: ' . $item['qty'] . ')');
+                    }
+
+                    // Buat detail
+                    TransactionDetail::create([
+                        'transaction_id' => $trx->id,
+                        'product_id' => (int)$item['product_id'],
+                        'qty' => (int)$item['qty'],
+                        'price' => (float)$item['price']
+                    ]);
+
+                    // Update stock produk
                     $product->decrement('stock', (int)$item['qty']);
                 }
-            }
-            
-            return $trx;
-        });
+                
+                return $trx;
+            });
 
-        return redirect()->route('transactions.nota', $trx->id)->with('success', 'Transaksi berhasil dibuat');
+            return redirect()->route('transactions.nota', $trx->id)->with('success', 'Transaksi berhasil dibuat');
+        } catch (\Exception $e) {
+            return back()->withInput()->withErrors(['error' => 'Gagal membuat transaksi: ' . $e->getMessage()]);
+        }
     }
 
     public function show(string $id)

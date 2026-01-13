@@ -23,8 +23,8 @@ class DatabaseSeeder extends Seeder
         'password' => bcrypt('alzendi7')
         ]);
 
-        // $this->call([
-        //     CategorySeeder::class,
-        // ]);
+        $this->call([
+            ProductSeeder::class,
+        ]);
     }
 }
