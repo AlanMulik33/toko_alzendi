@@ -43,13 +43,9 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::get('/admin/dashboard', function () {
         return view('admin.dashboard');
     })->name('admin.dashboard');
-    // Admin dapat mengelola produk, kategori, pelanggan, dan melihat semua transaksi
+    // Admin dapat mengelola produk, kategori, dan melihat semua transaksi
     Route::resource('products', ProductController::class);
     Route::resource('categories', CategoryController::class);
-    Route::resource('customers', CustomerController::class);
-    Route::resource('transactions', TransactionController::class)->except(['store', 'create']); // Admin tidak bisa buat transaksi baru
-    Route::resource('categories', CategoryController::class);
-    Route::resource('customers', CustomerController::class);
     Route::resource('transactions', TransactionController::class)->except(['store', 'create']); // Admin tidak bisa buat transaksi baru
     Route::get('/report/transactions/pdf', [ReportController::class, 'transactionsPdf'])->name('report.transactions.pdf');
 });

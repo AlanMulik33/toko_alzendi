@@ -14,7 +14,6 @@
         <ul class="mt-3">
             <li><a href="{{ route('products.index') }}">Manage Products</a></li>
             <li><a href="{{ route('categories.index') }}">Manage Categories</a></li>
-            <li><a href="{{ route('customers.index') }}">Manage Customers</a></li>
         </ul>
     </div>
 </body>
