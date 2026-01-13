@@ -30,8 +30,6 @@ class TransactionController extends Controller
 
     public function store(Request $request)
     {
-        \Log::info('Transaction store called', $request->all());
-
         try {
             // Tentukan customer_id berdasarkan guard
             $customer_id = null;
@@ -40,8 +38,6 @@ class TransactionController extends Controller
             } else {
                 $customer_id = $request->customer_id;
             }
-
-            \Log::info('Customer ID determined', ['customer_id' => $customer_id]);
 
             // Validasi
             $rules = [
@@ -54,13 +50,10 @@ class TransactionController extends Controller
             }
             $request->validate($rules);
 
-            \Log::info('Validation passed');
-
             $trx = DB::transaction(function() use ($request, $customer_id) {
+                try {
                 // Parse items jika string JSON
                 $items = is_string($request->items) ? json_decode($request->items, true) : $request->items;
-                
-                dd('Items parsed', $items); // Debug
                 
                 // Validasi ada items
                 if(empty($items)) {
@@ -70,7 +63,6 @@ class TransactionController extends Controller
                 // Hitung total dari items
                 $total = 0;
                 foreach($items as $item) {
-                    dd('Processing item', $item); // Debug
                     if(!empty($item['price']) && !empty($item['qty'])) {
                         $total += (float)$item['price'] * (int)$item['qty'];
                     }
@@ -119,6 +111,10 @@ class TransactionController extends Controller
                 }
                 
                 return $trx;
+                } catch (\Exception $e) {
+                    \Log::error('Error in DB transaction', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+                    throw $e; // Re-throw to rollback
+                }
             });
 
             \Log::info('Transaction completed', ['trx_id' => $trx->id]);
