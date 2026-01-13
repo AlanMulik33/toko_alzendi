@@ -6,6 +6,17 @@
 <div class="row">
     <div class="col-md-12">
         <h2>Tambah Transaksi</h2>
+        
+        @if($errors->any())
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+        
         <form action="{{ route('transactions.store') }}" method="POST" id="transactionForm">
             @csrf
             <div class="row">
