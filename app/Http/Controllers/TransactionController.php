@@ -70,12 +70,11 @@ class TransactionController extends Controller
                 // Hitung total dari items
                 $total = 0;
                 foreach($items as $item) {
+                    dd('Processing item', $item); // Debug
                     if(!empty($item['price']) && !empty($item['qty'])) {
                         $total += (float)$item['price'] * (int)$item['qty'];
                     }
                 }
-
-                dd('Total calculated', $total, $items); // Debug
 
                 // Buat transaksi
                 $trx = Transaction::create([
