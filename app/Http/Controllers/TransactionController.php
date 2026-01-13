@@ -75,7 +75,7 @@ class TransactionController extends Controller
                     }
                 }
 
-                \Log::info('Total calculated', ['total' => $total]);
+                dd('Total calculated', $total, $items); // Debug
 
                 // Buat transaksi
                 $trx = Transaction::create([
