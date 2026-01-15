@@ -34,4 +34,5 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 storage bootstrap/cache \
     && chmod +x /start.sh
 
+EXPOSE 8080
 CMD ["/start.sh"]

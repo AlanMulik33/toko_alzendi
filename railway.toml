@@ -1,3 +1,5 @@
 [build]
-dockerComposeFile = "docker-compose.yml"
-dockerComposeService = "app"
+dockerfile = "Dockerfile"
+
+[deploy]
+startCommand = "/start.sh"
