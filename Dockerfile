@@ -30,8 +30,9 @@ COPY docker/nginx.conf /etc/nginx/nginx.conf
 COPY docker/supervisord.conf /etc/supervisord.conf
 COPY docker/start.sh /start.sh
 
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 storage bootstrap/cache \
+RUN mkdir -p /var/log/supervisor /var/run/php-fpm \
+    && chown -R www-data:www-data /var/www/html /var/log/supervisor /var/run/php-fpm \
+    && chmod -R 755 storage bootstrap/cache logs \
     && chmod +x /start.sh
 
 EXPOSE 8080
