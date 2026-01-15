@@ -3,8 +3,18 @@ FROM php:8.4-fpm-alpine
 # Install nginx and supervisor
 RUN apk add --no-cache nginx supervisor nodejs npm
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo pdo_mysql opcache
+# Install system deps for gd
+RUN apk add --no-cache \
+    freetype-dev \
+    libjpeg-turbo-dev \
+    libpng-dev
+
+# Install PHP extensions (including gd)
+RUN docker-php-ext-configure gd \
+        --with-freetype \
+        --with-jpeg \
+    && docker-php-ext-install gd pdo pdo_mysql opcache
+
 
 # Install composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
