@@ -3,38 +3,34 @@ set -e
 
 echo "Starting Toko Alzendi application..."
 
-# Copy .env from .env.example if .env doesn't exist
+# Create . env from .env.example if not exists
 if [ ! -f /var/www/html/.env ]; then
     echo "Creating .env from .env.example..."
-    if [ -f /var/www/html/.env.example ]; then
-        cp /var/www/html/.env.example /var/www/html/.env
-        echo ".env file created successfully"
+    if [ -f /var/www/html/.env. example ]; then
+        cp /var/www/html/.env. example /var/www/html/. env
     else
-        echo "ERROR: .env.example not found!"
+        echo "ERROR: .env. example not found!"
         exit 1
     fi
 fi
 
-# Generate APP_KEY if not already set
-if ! grep -q "^APP_KEY=base64:" /var/www/html/.env; then
+# Generate APP_KEY if not set
+if !  grep -q "^APP_KEY=base64:" /var/www/html/.env; then
     echo "Generating APP_KEY..."
     cd /var/www/html
-    php artisan key:generate 2>&1 || true
+    php artisan key:generate || echo "Warning: Could not generate APP_KEY"
 fi
 
 # Create necessary directories
-mkdir -p /var/run/php-fpm /var/log/supervisor /var/www/html/storage/logs
-chown -R www-data:www-data /var/run/php-fpm /var/www/html/storage /var/www/html/bootstrap/cache
+echo "Creating directories..."
+mkdir -p /var/run/php-fpm /var/www/html/storage/logs /var/www/html/bootstrap/cache
+chown -R www-data: www-data /var/www/html /var/run/php-fpm
+chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Run migrations
 echo "Running migrations..."
 cd /var/www/html
-php artisan migrate --force 2>&1 || echo "Migrations completed with status: $?"
-
-# Cache config and routes for production
-echo "Caching configuration..."
-php artisan config:cache 2>&1 || true
-php artisan route:cache 2>&1 || true
+php artisan migrate --force 2>&1 || echo "Warning:  Migrations may have failed or already ran"
 
 echo "Starting supervisord..."
 exec /usr/bin/supervisord -c /etc/supervisord.conf
