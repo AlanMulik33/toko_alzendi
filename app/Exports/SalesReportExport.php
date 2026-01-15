@@ -45,11 +45,13 @@ class LaporanPenjualanSheet implements FromCollection, WithTitle, WithHeadings, 
 
     public function collection()
     {
-        $query = \App\Models\TransactionDetail::with('transaction.customer', 'product.category')
+        $query = \App\Models\TransactionDetail::with(['transaction', 'transaction.customer', 'product.category'])
             ->selectRaw('
                 transactions.id as transaction_id,
                 transactions.date,
-                customers.name as customer_name,
+                transactions.payment_method,
+                transactions.customer_id,
+                transactions.notes,
                 products.name as product_name,
                 categories.name as category_name,
                 transaction_details.qty,
@@ -58,7 +60,7 @@ class LaporanPenjualanSheet implements FromCollection, WithTitle, WithHeadings, 
                 transactions.total as transaction_total
             ')
             ->join('transactions', 'transaction_details.transaction_id', '=', 'transactions.id')
-            ->join('customers', 'transactions.customer_id', '=', 'customers.id')
+            ->leftJoin('customers', 'transactions.customer_id', '=', 'customers.id')
             ->join('products', 'transaction_details.product_id', '=', 'products.id')
             ->join('categories', 'products.category_id', '=', 'categories.id')
             ->orderByDesc('transactions.date');
@@ -69,21 +71,54 @@ class LaporanPenjualanSheet implements FromCollection, WithTitle, WithHeadings, 
 
         $details = $query->get();
 
+        // Set payment_method dan nama pelanggan untuk offline
+        foreach ($details as $detail) {
+            if (empty($detail->payment_method)) {
+                $detail->payment_method = 'cash';
+            }
+            if (empty($detail->customer_id)) {
+                // Cek notes offline
+                if (!empty($detail->notes) && \Illuminate\Support\Str::startsWith($detail->notes, 'Offline customer:')) {
+                    $detail->customer_name = trim(str_replace('Offline customer:', '', $detail->notes));
+                } else {
+                    $detail->customer_name = 'Offline';
+                }
+            }
+        }
+
+        // Group by payment_method
+        $grouped = $details->groupBy('payment_method');
         $data = collect();
         $no = 1;
-        foreach ($details as $detail) {
+        foreach ($grouped as $paymentMethod => $items) {
             $data->push([
-                'No' => $no++,
-                'Tanggal Transaksi' => $detail->date ? \Carbon\Carbon::parse($detail->date)->format('d-m-Y') : '-',
-                'Kode Transaksi' => 'TRX-' . str_pad($detail->transaction_id, 5, '0', STR_PAD_LEFT),
-                'Nama Pelanggan' => $detail->customer_name,
-                'Nama Barang' => $detail->product_name,
-                'Kategori' => $detail->category_name,
-                'Jumlah' => $detail->qty,
-                'Harga Satuan' => $detail->unit_price,
-                'Subtotal' => $detail->subtotal,
-                'Total Transaksi' => $detail->transaction_total,
+                'No' => '',
+                'Tanggal Transaksi' => '',
+                'Kode Transaksi' => '',
+                'Nama Pelanggan' => '',
+                'Nama Barang' => '',
+                'Kategori' => '',
+                'Jumlah' => '',
+                'Harga Satuan' => '',
+                'Subtotal' => '',
+                'Total Transaksi' => '',
+                'Metode Pembayaran' => strtoupper($paymentMethod),
             ]);
+            foreach ($items as $detail) {
+                $data->push([
+                    'No' => $no++,
+                    'Tanggal Transaksi' => $detail->date ? \Carbon\Carbon::parse($detail->date)->format('d-m-Y') : '-',
+                    'Kode Transaksi' => 'TRX-' . str_pad($detail->transaction_id, 5, '0', STR_PAD_LEFT),
+                    'Nama Pelanggan' => $detail->customer_name ?? 'Offline',
+                    'Nama Barang' => $detail->product_name,
+                    'Kategori' => $detail->category_name,
+                    'Jumlah' => $detail->qty,
+                    'Harga Satuan' => $detail->unit_price,
+                    'Subtotal' => $detail->subtotal,
+                    'Total Transaksi' => $detail->transaction_total,
+                    'Metode Pembayaran' => strtoupper($paymentMethod),
+                ]);
+            }
         }
 
         return $data;
@@ -102,6 +137,7 @@ class LaporanPenjualanSheet implements FromCollection, WithTitle, WithHeadings, 
             'Harga Satuan',
             'Subtotal',
             'Total Transaksi',
+            'Metode Pembayaran',
         ];
     }
 
@@ -118,7 +154,7 @@ class LaporanPenjualanSheet implements FromCollection, WithTitle, WithHeadings, 
     protected function applyStyles(Worksheet $sheet, int $maxRow)
     {
         // Header styling
-        $sheet->getStyle('A1:J1')->applyFromArray([
+        $sheet->getStyle('A1:K1')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'color' => ['rgb' => 'FFFFFF'],
@@ -142,7 +178,7 @@ class LaporanPenjualanSheet implements FromCollection, WithTitle, WithHeadings, 
 
         // Data styling
         for ($row = 2; $row <= $maxRow; $row++) {
-            $sheet->getStyle("A$row:J$row")->applyFromArray([
+            $sheet->getStyle("A$row:K$row")->applyFromArray([
                 'borders' => [
                     'allBorders' => [
                         'borderStyle' => Border::BORDER_THIN,
@@ -156,6 +192,7 @@ class LaporanPenjualanSheet implements FromCollection, WithTitle, WithHeadings, 
             // Number alignment
             $sheet->getStyle("A$row")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("G$row:J$row")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheet->getStyle("K$row")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
             // Format currency
             $sheet->getStyle("H$row:J$row")->getNumberFormat()->setFormatCode('_("Rp"* #,##0.00_);_("Rp"* (#,##0.00);_("Rp"* "-"??_);_(@_)');
@@ -172,6 +209,7 @@ class LaporanPenjualanSheet implements FromCollection, WithTitle, WithHeadings, 
         $sheet->getColumnDimension('H')->setWidth(15);
         $sheet->getColumnDimension('I')->setWidth(15);
         $sheet->getColumnDimension('J')->setWidth(18);
+        $sheet->getColumnDimension('K')->setWidth(18);
 
         return [];
     }

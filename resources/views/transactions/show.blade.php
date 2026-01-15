@@ -19,10 +19,10 @@
                         <p><strong>Pelanggan:</strong>
                             @if($transaction->customer)
                                 {{ $transaction->customer->name }}
-                            @elseif(Str::startsWith($transaction->notes, 'Offline customer:'))
+                            @elseif(!empty($transaction->notes) && Str::startsWith($transaction->notes, 'Offline customer:'))
                                 {{ trim(Str::replace('Offline customer:', '', $transaction->notes)) }}
                             @else
-                                -
+                                <span class="text-muted">Offline</span>
                             @endif
                         </p>
                         <p><strong>Tanggal:</strong> {{ is_string($transaction->date) ? \Carbon\Carbon::parse($transaction->date)->format('d-m-Y H:i:s') : $transaction->date->format('d-m-Y H:i:s') }}</p>
@@ -42,7 +42,13 @@
                     <tbody>
                         @foreach($transaction->details as $detail)
                         <tr>
-                            <td>{{ $detail->product->name }}</td>
+                            <td>
+                                @if($detail->product)
+                                    {{ $detail->product->name }}
+                                @else
+                                    <span class="text-danger">[Produk dihapus]</span>
+                                @endif
+                            </td>
                             <td>Rp {{ number_format($detail->price, 0, ',', '.') }}</td>
                             <td>{{ $detail->qty }}</td>
                             <td>Rp {{ number_format($detail->price * $detail->qty, 0, ',', '.') }}</td>
