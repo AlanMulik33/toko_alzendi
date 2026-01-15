@@ -1,14 +1,10 @@
 #!/bin/sh
+set -e
 
-# Create SQLite database if it doesn't exist
+# Create SQLite database if needed (aman walau pakai MySQL)
 if [ ! -f /var/www/html/database/database.sqlite ]; then
-    touch /var/www/html/database/database.sqlite
-    chmod 666 /var/www/html/database/database.sqlite
-    chown www-data:www-data /var/www/html/database/database.sqlite
+    touch /var/www/html/database/database.sqlite || true
 fi
 
-# Run migrations
-php artisan migrate --force
-
-# Start supervisor
+# Start supervisor (nginx + php-fpm)
 exec /usr/bin/supervisord -c /etc/supervisord.conf
