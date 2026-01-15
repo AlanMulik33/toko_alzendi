@@ -21,8 +21,14 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('admin.transactions.index') }}">View Transactions</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('report.transactions.pdf') }}">Report PDF</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarReports" role="button" data-bs-toggle="dropdown">
+                            📊 Reports
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarReports">
+                            <li><a class="dropdown-item" href="{{ route('report.dashboard') }}">Dashboard Laporan</a></li>
+                            <li><a class="dropdown-item" href="{{ route('report.transactions.pdf') }}">Export PDF</a></li>
+                        </ul>
                     </li>
                 @endauth
                 @auth('customer') <!-- Customer -->

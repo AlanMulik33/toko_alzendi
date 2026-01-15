@@ -6,7 +6,14 @@
 <div class="container mt-5">
     <div class="row">
         <div class="col-md-8">
-            <h2>Alamat Saya</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>Alamat Saya</h2>
+                @if(request('from') === 'transaction')
+                    <a href="{{ route('transactions.create') }}" class="btn btn-secondary btn-sm">
+                        ← Kembali ke Transaksi
+                    </a>
+                @endif
+            </div>
 
             @if(session('success'))
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -16,7 +23,7 @@
             @endif
 
             <div class="mb-3">
-                <a href="{{ route('customer.addresses.create') }}" class="btn btn-primary">
+                <a href="{{ route('customer.addresses.create', request('from') ? ['from' => request('from')] : []) }}" class="btn btn-primary">
                     <i class="bi bi-plus-circle"></i> Tambah Alamat Baru
                 </a>
             </div>
@@ -48,13 +55,13 @@
                                     <form action="{{ route('customer.addresses.setDefault', $address) }}" method="POST" style="display: inline;">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-outline-primary" 
-                                                onclick="return confirm('Jadikan alamat ini default?')">
+                                                onclick="setDefaultAddress(event, this)">
                                             Set Default
                                         </button>
                                     </form>
                                 @endif
 
-                                <a href="{{ route('customer.addresses.edit', $address) }}" class="btn btn-sm btn-warning">
+                                <a href="{{ route('customer.addresses.edit', $address) }}{{ request('from') ? '?from=' . request('from') : '' }}" class="btn btn-sm btn-warning">
                                     <i class="bi bi-pencil"></i> Edit
                                 </a>
 
@@ -78,4 +85,53 @@
         </div>
     </div>
 </div>
+
+<script>
+function setDefaultAddress(event, button) {
+    event.preventDefault();
+    
+    if (!confirm('Jadikan alamat ini default?')) {
+        return false;
+    }
+    
+    const form = button.closest('form');
+    const fromTransaction = new URLSearchParams(window.location.search).get('from') === 'transaction';
+    const actionUrl = fromTransaction ? form.action + '?from=transaction' : form.action;
+    
+    const formData = new FormData(form);
+    
+    fetch(actionUrl, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+            'Accept': 'application/json'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ ' + data.message);
+            // Jika dari transaction, gunakan history.back() agar form tetap preserved
+            if (new URLSearchParams(window.location.search).get('from') === 'transaction') {
+                setTimeout(() => {
+                    history.back();
+                }, 500);
+            } else if (data.redirect) {
+                window.location.href = data.redirect;
+            } else {
+                location.reload();
+            }
+        } else {
+            alert('❌ ' + (data.message || 'Gagal mengubah alamat default'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('❌ Terjadi kesalahan. Silakan coba lagi.');
+    });
+    
+    return false;
+}
+</script>
 @endsection

@@ -54,6 +54,7 @@
 
                         @php
                             $hasAddresses = auth('customer')->user()->addresses()->count() > 0;
+                            $fromTransaction = request('from') === 'transaction';
                         @endphp
 
                         @if($hasAddresses)
@@ -69,7 +70,11 @@
 
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">Simpan Alamat</button>
-                            <a href="{{ route('customer.addresses.index') }}" class="btn btn-secondary">Batal</a>
+                            @if($fromTransaction)
+                                <a href="{{ route('transactions.create') }}" class="btn btn-secondary">← Kembali ke Transaksi</a>
+                            @else
+                                <a href="{{ route('customer.addresses.index') }}" class="btn btn-secondary">Batal</a>
+                            @endif
                         </div>
                     </form>
                 </div>

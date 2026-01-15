@@ -54,7 +54,7 @@
                             @endforelse
                         </select>
                         <small class="text-muted">
-                            <a href="{{ route('customer.addresses.index') }}" target="_blank">Kelola alamat</a>
+                            <a href="{{ route('customer.addresses.index', ['from' => 'transaction']) }}">Kelola alamat</a>
                         </small>
                         @error('address_id')<span class="invalid-feedback d-block">{{ $message }}</span>@enderror
                     </div>
@@ -104,17 +104,62 @@
                     <div class="mb-3">
                         <label class="form-label">Metode Pembayaran</label>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="payment_method" id="paymentCash" value="cash" checked>
+                            <input class="form-check-input" type="radio" name="payment_method" id="paymentCash" value="cash" checked onchange="updatePaymentPreview()">
                             <label class="form-check-label" for="paymentCash">
                                 💵 Cash (Tunai)
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="payment_method" id="paymentQris" value="qris">
+                            <input class="form-check-input" type="radio" name="payment_method" id="paymentQris" value="qris" onchange="updatePaymentPreview()">
                             <label class="form-check-label" for="paymentQris">
                                 📱 QRIS
                             </label>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QRIS Preview Card -->
+            <div id="qrisPreviewCard" class="card mt-4" style="display: none; border: 2px solid #17a2b8;">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">📱 QRIS Payment Instructions</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="text-muted mb-3">
+                        Scan QR code di bawah untuk melakukan pembayaran ke Toko Alzendi
+                    </p>
+                    
+                    <!-- QR Code Image -->
+                    <div style="margin: 20px 0; padding: 20px; background-color: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6;">
+                        <img id="qrisImage" src="{{ route('qris.image') }}" alt="QRIS Code" style="width: 280px; height: 280px; object-fit: contain;">
+                    </div>
+                    
+                    <!-- Nominal -->
+                    <div style="margin: 15px 0; padding: 15px; background-color: #e8f5e9; border-radius: 8px; border-left: 4px solid #4caf50;">
+                        <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Total Nominal Pembayaran</div>
+                        <div style="font-size: 24px; font-weight: bold; color: #2e7d32;">
+                            Rp <span id="qrisAmount">0</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Download Button -->
+                    <div style="margin-top: 15px;">
+                        <a href="{{ route('qris.download') }}" class="btn btn-sm btn-outline-info" target="_blank">
+                            📥 Download QRIS Code
+                        </a>
+                    </div>
+                    
+                    <!-- Instructions -->
+                    <div style="margin-top: 20px; padding: 15px; background-color: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107; text-align: left;">
+                        <div style="font-weight: bold; margin-bottom: 8px; color: #856404;">📋 Cara Pembayaran:</div>
+                        <ol style="margin-bottom: 0; color: #856404; font-size: 13px;">
+                            <li>Buka aplikasi e-wallet atau banking Anda</li>
+                            <li>Pilih fitur "Scan QRIS"</li>
+                            <li>Scan QR code di atas</li>
+                            <li>Verifikasi nominal: <strong>Rp <span id="qrisAmountInstruction">0</span></strong></li>
+                            <li>Konfirmasi dan selesaikan pembayaran</li>
+                            <li>Simpan bukti pembayaran</li>
+                        </ol>
                     </div>
                 </div>
             </div>
@@ -247,6 +292,12 @@ function updateTotal() {
     document.getElementById('totalInput').value = parseFloat(totalAmount).toFixed(2);
     document.getElementById('itemsInput').value = JSON.stringify(items);
     
+    // Update QRIS preview amount jika QRIS dipilih
+    if (document.getElementById('paymentQris').checked) {
+        document.getElementById('qrisAmount').textContent = formatter.format(Math.round(totalAmount));
+        document.getElementById('qrisAmountInstruction').textContent = formatter.format(Math.round(totalAmount));
+    }
+    
     console.log(`📊 Updated: ${itemCount} items, Total: ${totalAmount}`);
     console.log(items);
 }
@@ -302,6 +353,139 @@ document.getElementById('transactionForm').addEventListener('submit', function(e
     }
     
     console.log('✅ Validation passed - submitting');
+});
+
+// Update payment method preview
+function updatePaymentPreview() {
+    const isQris = document.getElementById('paymentQris').checked;
+    const qrisPreviewCard = document.getElementById('qrisPreviewCard');
+    const totalAmount = parseFloat(document.getElementById('totalInput').value) || 0;
+    const formatter = new Intl.NumberFormat('id-ID');
+    
+    if (isQris) {
+        qrisPreviewCard.style.display = 'block';
+        document.getElementById('qrisAmount').textContent = formatter.format(Math.round(totalAmount));
+        document.getElementById('qrisAmountInstruction').textContent = formatter.format(Math.round(totalAmount));
+        console.log('📱 QRIS selected - preview shown');
+    } else {
+        qrisPreviewCard.style.display = 'none';
+        console.log('💵 Cash selected - QRIS hidden');
+    }
+}
+
+// ===== SAVE & RESTORE FORM STATE =====
+// Simpan state form saat ada perubahan
+function saveFormState() {
+    const formState = {
+        items: document.getElementById('itemsInput').value,
+        total: document.getElementById('totalInput').value,
+        itemCount: document.getElementById('itemCountDisplay').textContent,
+        totalAmount: document.getElementById('totalAmount').textContent,
+        paymentMethod: document.querySelector('input[name="payment_method"]:checked').value,
+        addressId: document.getElementById('address_id') ? document.getElementById('address_id').value : null,
+        timestamp: new Date().getTime()
+    };
+    sessionStorage.setItem('transactionFormState', JSON.stringify(formState));
+    console.log('💾 Form state saved:', formState);
+}
+
+// Restore state form jika ada
+function restoreFormState() {
+    const savedState = sessionStorage.getItem('transactionFormState');
+    if (!savedState) return;
+
+    try {
+        const formState = JSON.parse(savedState);
+        const timeSinceLastSave = new Date().getTime() - formState.timestamp;
+        
+        // Hanya restore jika kurang dari 1 jam yang lalu
+        if (timeSinceLastSave > 3600000) {
+            console.log('⏰ Form state expired');
+            sessionStorage.removeItem('transactionFormState');
+            return;
+        }
+
+        // Restore items dan total
+        if (formState.items && formState.items !== '[]') {
+            const items = JSON.parse(formState.items);
+            
+            // Recreate rows
+            items.forEach((item, index) => {
+                rowCount++;
+                const rowId = 'item_' + rowCount;
+                
+                const row = `
+                    <tr id="${rowId}">
+                        <td>
+                            <select class="form-control item-product" data-row="${rowCount}" onchange="updateRow(${rowCount})">
+                                <option value="">-- Pilih Produk --</option>
+                                ${products.map(p => {
+                                    const selected = p.id === item.product_id ? 'selected' : '';
+                                    return `<option value="${p.id}" data-price="${p.price}" ${selected}>${p.name}</option>`;
+                                }).join('')}
+                            </select>
+                        </td>
+                        <td><input type="number" class="form-control item-price" value="${item.price}" step="0.01" readonly></td>
+                        <td><input type="number" class="form-control item-qty" value="${item.qty}" min="1" max="999" onchange="updateRow(${rowCount})" oninput="updateRow(${rowCount})"></td>
+                        <td><input type="number" class="form-control item-subtotal" value="${(item.price * item.qty).toFixed(2)}" step="0.01" readonly></td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(${rowCount})">Hapus</button>
+                        </td>
+                    </tr>
+                `;
+                
+                document.getElementById('itemsBody').insertAdjacentHTML('beforeend', row);
+            });
+
+            // Restore totals
+            document.getElementById('itemCountDisplay').textContent = formState.itemCount;
+            document.getElementById('totalAmount').textContent = formState.totalAmount;
+            document.getElementById('totalInput').value = formState.total;
+            document.getElementById('itemsInput').value = formState.items;
+
+            // Restore payment method
+            const paymentRadio = document.querySelector(`input[name="payment_method"][value="${formState.paymentMethod}"]`);
+            if (paymentRadio) {
+                paymentRadio.checked = true;
+                updatePaymentPreview();
+            }
+
+            // Restore address
+            if (formState.addressId && document.getElementById('address_id')) {
+                document.getElementById('address_id').value = formState.addressId;
+            }
+
+            console.log('✅ Form state restored:', formState);
+        }
+
+        // Clear state after restore
+        sessionStorage.removeItem('transactionFormState');
+    } catch (error) {
+        console.error('Error restoring form state:', error);
+        sessionStorage.removeItem('transactionFormState');
+    }
+}
+
+// Restore saat page load
+document.addEventListener('DOMContentLoaded', function() {
+    restoreFormState();
+});
+
+// Save state saat ada perubahan di form
+document.getElementById('itemsBody').addEventListener('change', saveFormState);
+document.getElementById('itemsBody').addEventListener('input', saveFormState);
+document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+    radio.addEventListener('change', saveFormState);
+});
+if (document.getElementById('address_id')) {
+    document.getElementById('address_id').addEventListener('change', saveFormState);
+}
+
+// Save state sebelum navigasi ke kelola alamat
+document.querySelectorAll('a[href*="customer/addresses"]').forEach(link => {
+    link.addEventListener('click', function() {
+        saveFormState();
+    });
 });
 </script>
 @endsection

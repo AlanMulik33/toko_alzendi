@@ -8,13 +8,20 @@ use App\Models\Transaction;
 use App\Models\TransactionDetail;
 use App\Models\Product;
 use App\Models\Customer;
+use App\Services\QrisService;
 
 class TransactionController extends Controller
 {
-    public function index()
+    public function index(): \Illuminate\View\View
     {
         if (auth('customer')->check()) {
-            $transactions = Transaction::where('customer_id', auth('customer')->id())->with('customer')->paginate(15);
+            /** @var \App\Models\Customer $customer */
+            $customer = auth('customer')->user();
+            $customerId = $customer->id ?? null;
+            $transactions = Transaction::query()
+                ->where('customer_id', $customerId)
+                ->with('customer')
+                ->paginate(15);
         } else {
             $transactions = Transaction::with('customer')->paginate(15);
         }
@@ -77,7 +84,7 @@ class TransactionController extends Controller
                 // Ambil alamat jika ada
                 $addressData = [];
                 if ($address_id) {
-                    $address = \App\Models\CustomerAddress::find($address_id);
+                    $address = \App\Models\CustomerAddress::find($address_id, ['*']);
                     if ($address && $address->customer_id === $customer_id) {
                         $addressData['address_id'] = $address_id;
                         $addressData['address_snapshot'] = "Label: {$address->label}\nAlamat: {$address->address}\nTelepon: {$address->phone}";
@@ -93,6 +100,19 @@ class TransactionController extends Controller
                     ...$addressData
                 ]);
 
+                // Generate QRIS jika metode pembayaran adalah QRIS
+                if ($request->payment_method === 'qris') {
+                    $finalTotal = $total > 0 ? $total : (float)$request->total;
+                    $qrisCode = QrisService::generateSimpleQris($finalTotal, 'TRX' . $trx->id);
+                    
+                    if ($qrisCode) {
+                        $trx->update(['qris_code' => $qrisCode]);
+                        \Log::info('QRIS code generated', ['trx_id' => $trx->id, 'amount' => $finalTotal]);
+                    } else {
+                        \Log::warning('Failed to generate QRIS code', ['trx_id' => $trx->id]);
+                    }
+                }
+
                 \Log::info('Transaction created', ['trx_id' => $trx->id]);
 
                 // Buat detail transaksi dan update stock
@@ -103,7 +123,7 @@ class TransactionController extends Controller
                     }
 
                     // Cek stock produk
-                    $product = Product::find((int)$item['product_id']);
+                    $product = Product::find((int)$item['product_id'], ['*']);
                     if(!$product) {
                         throw new \Exception('Produk tidak ditemukan: ' . $item['product_id']);
                     }
@@ -174,14 +194,14 @@ class TransactionController extends Controller
         DB::transaction(function() use ($transaction) {
             // Restore stock untuk setiap detail
             foreach($transaction->details as $detail) {
-                $product = Product::find($detail->product_id);
+                $product = Product::find($detail->product_id, ['*']);
                 if($product) {
                     $product->increment('stock', $detail->qty);
                 }
             }
             
             // Hapus transaksi (detail akan terhapus otomatis via cascade)
-            $transaction->delete();
+            $transaction->forceDelete();
         });
 
         return redirect()->route(auth('customer')->check() ? 'transactions.index' : 'admin.transactions.index')->with('success', 'Transaksi berhasil dihapus');

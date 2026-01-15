@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\CustomerAddress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class CustomerAddressController extends Controller
 {
@@ -54,6 +55,11 @@ class CustomerAddressController extends Controller
 
         $customer->addresses()->create($request->all());
 
+        // Kembali ke halaman sebelumnya jika dari transaksi
+        if ($request->query('from') === 'transaction') {
+            return redirect()->back()->with('success', 'Alamat berhasil ditambahkan');
+        }
+
         return redirect()->route('customer.addresses.index')
             ->with('success', 'Alamat berhasil ditambahkan');
     }
@@ -63,7 +69,10 @@ class CustomerAddressController extends Controller
      */
     public function edit(CustomerAddress $address)
     {
-        $this->authorize('view', $address);
+        $customer = Auth::guard('customer')->user();
+        if (!$customer || $address->customer_id !== $customer->id) {
+            abort(403, 'Unauthorized');
+        }
         return view('customer.addresses.edit', compact('address'));
     }
 
@@ -72,7 +81,10 @@ class CustomerAddressController extends Controller
      */
     public function update(Request $request, CustomerAddress $address)
     {
-        $this->authorize('update', $address);
+        $customer = Auth::guard('customer')->user();
+        if (!$customer || $address->customer_id !== $customer->id) {
+            abort(403, 'Unauthorized');
+        }
 
         $request->validate([
             'label' => 'nullable|string|max:50',
@@ -88,6 +100,11 @@ class CustomerAddressController extends Controller
 
         $address->update($request->all());
 
+        // Kembali ke halaman sebelumnya jika dari transaksi
+        if ($request->query('from') === 'transaction') {
+            return redirect()->back()->with('success', 'Alamat berhasil diperbarui');
+        }
+
         return redirect()->route('customer.addresses.index')
             ->with('success', 'Alamat berhasil diperbarui');
     }
@@ -97,7 +114,10 @@ class CustomerAddressController extends Controller
      */
     public function destroy(CustomerAddress $address)
     {
-        $this->authorize('delete', $address);
+        $customer = Auth::guard('customer')->user();
+        if (!$customer || $address->customer_id !== $customer->id) {
+            abort(403, 'Unauthorized');
+        }
 
         // Jika yang dihapus adalah default address
         if ($address->is_default) {
@@ -110,7 +130,7 @@ class CustomerAddressController extends Controller
             }
         }
 
-        $address->delete();
+        $address->forceDelete();
 
         return redirect()->route('customer.addresses.index')
             ->with('success', 'Alamat berhasil dihapus');
@@ -121,9 +141,16 @@ class CustomerAddressController extends Controller
      */
     public function setDefault(CustomerAddress $address)
     {
-        $this->authorize('update', $address);
+        // Validasi customer
+        $customer = Auth::guard('customer')->user();
+        if (!$customer || $address->customer_id !== $customer->id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
 
+        // Update semua address default menjadi false
         $address->customer->addresses()->update(['is_default' => false]);
+        
+        // Set address ini menjadi default
         $address->update(['is_default' => true]);
 
         return response()->json(['success' => true, 'message' => 'Alamat default berhasil diubah']);

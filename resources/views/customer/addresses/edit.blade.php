@@ -63,7 +63,11 @@
 
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">Update Alamat</button>
-                            <a href="{{ route('customer.addresses.index') }}" class="btn btn-secondary">Batal</a>
+                            @if(request('from') === 'transaction')
+                                <a href="{{ route('transactions.create') }}" class="btn btn-secondary">← Kembali ke Transaksi</a>
+                            @else
+                                <a href="{{ route('customer.addresses.index') }}" class="btn btn-secondary">Batal</a>
+                            @endif
                         </div>
                     </form>
                 </div>

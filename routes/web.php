@@ -9,11 +9,18 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\CustomerAddressController;
+use App\Http\Controllers\QrisController;
 
 // Public routes (guest only)
 Route::get('/', function () {
     return view('welcome');
 });
+
+// QRIS routes (public)
+Route::get('/qris/merchant', [QrisController::class, 'merchantQris'])->name('qris.merchant');
+Route::get('/qris/image', [QrisController::class, 'getQrisImage'])->name('qris.image');
+Route::get('/qris/download', [QrisController::class, 'downloadQris'])->name('qris.download');
+Route::get('/qris/preview', [QrisController::class, 'preview'])->name('qris.preview');
 
 // Admin auth
 Route::get('admin/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
@@ -34,8 +41,8 @@ Route::middleware('auth:customer')->group(function(){
     })->name('customer.dashboard');
     
     // Customer addresses
-    Route::resource('customer.addresses', CustomerAddressController::class);
-    Route::post('customer.addresses/{address}/set-default', [CustomerAddressController::class, 'setDefault'])
+    Route::resource('customer/addresses', CustomerAddressController::class, ['names' => 'customer.addresses']);
+    Route::post('customer/addresses/{address}/set-default', [CustomerAddressController::class, 'setDefault'])
         ->name('customer.addresses.setDefault');
     
     // Customer dapat melihat transaksi miliknya dan membuat transaksi baru
@@ -62,6 +69,8 @@ Route::middleware(['auth:web', 'is_admin'])->group(function () {
     Route::put('/admin/transactions/{transaction}', [TransactionController::class,'update'])->name('admin.transactions.update');
     Route::delete('/admin/transactions/{transaction}', [TransactionController::class,'destroy'])->name('admin.transactions.destroy');
     Route::get('/report/transactions/pdf', [ReportController::class, 'transactionsPdf'])->name('report.transactions.pdf');
+    Route::get('/report/dashboard', [ReportController::class, 'dashboard'])->name('report.dashboard');
+    Route::get('/report/download-excel', [ReportController::class, 'downloadExcel'])->name('report.download-excel');
 });
 
 Route::get('/', function () {
