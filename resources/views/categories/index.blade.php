@@ -9,7 +9,7 @@
 <table class="table table-striped table-hover">
     <thead class="table-dark">
         <tr>
-            <th>ID</th>
+            <th>No</th>
             <th>Nama</th>
             <th>Aksi</th>
         </tr>
@@ -17,7 +17,7 @@
     <tbody>
         @forelse($categories as $cat)
         <tr>
-            <td>{{ $cat->id }}</td>
+            <td>{{ ($categories->currentPage() - 1) * $categories->perPage() + $loop->iteration }}</td>
             <td>{{ $cat->name }}</td>
             <td>
                 <a href="{{ route('categories.show', $cat->id) }}" class="btn btn-sm btn-info">Lihat</a>

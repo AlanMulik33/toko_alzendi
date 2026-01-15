@@ -31,8 +31,9 @@ class AdminAuthController extends Controller
             'password' => $request->input('password'),
         ];
 
+
         if (Auth::guard('web')->attempt($credentials, $request->filled('remember'))) {
-            return redirect()->intended(route('admin.dashboard'));
+            return redirect()->route('admin.dashboard');
         }
 
         return back()->withErrors(['login' => 'Username/Email or password incorrect']);

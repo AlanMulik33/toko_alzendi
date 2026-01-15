@@ -194,7 +194,7 @@ class RekapHarianSheet implements FromCollection, WithTitle, WithHeadings, WithS
                 SUM(total) as total_penjualan
             ')
             ->groupByRaw('DATE(date)')
-            ->orderByDesc('DATE(date)');
+            ->orderByDesc('tanggal');
 
         if ($this->selectedCategory && $this->selectedCategory !== 'all') {
             $query->join('transaction_details', 'transactions.id', '=', 'transaction_details.transaction_id')

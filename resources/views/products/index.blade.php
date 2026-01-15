@@ -9,7 +9,7 @@
 <table class="table table-striped table-hover">
     <thead class="table-dark">
         <tr>
-            <th>ID</th>
+            <th>No</th>
             <th>Nama</th>
             <th>Kategori</th>
             <th>Harga</th>
@@ -20,7 +20,7 @@
     <tbody>
         @forelse($products as $p)
         <tr>
-            <td>{{ $p->id }}</td>
+            <td>{{ ($products->currentPage() - 1) * $products->perPage() + $loop->iteration }}</td>
             <td>{{ $p->name }}</td>
             <td>{{ $p->category->name }}</td>
             <td>Rp {{ number_format($p->price, 0, ',', '.') }}</td>

@@ -175,6 +175,12 @@
                 <span class="nota-info-label">Kontak:</span>
                 <span>{{ $transaction->customer->phone ?? '-' }}</span>
             </div>
+            @if($transaction->customer->defaultAddress)
+            <div class="nota-info-row">
+                <span class="nota-info-label">Alamat:</span>
+                <span>{{ $transaction->customer->defaultAddress->address }}</span>
+            </div>
+            @endif
         </div>
 
         <!-- Daftar Item -->

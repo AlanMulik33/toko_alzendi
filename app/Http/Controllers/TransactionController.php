@@ -177,7 +177,7 @@ class TransactionController extends Controller
 
     public function nota(string $id)
     {
-        $transaction = Transaction::with('customer', 'details.product')->findOrFail($id);
+        $transaction = Transaction::with(['customer.defaultAddress', 'details.product'])->findOrFail($id);
         
         // Authorization: customer hanya bisa lihat nota transaksinya sendiri
         if (auth('customer')->check() && $transaction->customer_id !== auth('customer')->id()) {

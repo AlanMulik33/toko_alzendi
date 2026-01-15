@@ -36,9 +36,7 @@ Route::post('customer/register', [CustomerAuthController::class,'register']);
 
 // Customer-only routes
 Route::middleware('auth:customer')->group(function(){
-    Route::get('/customer/dashboard', function () {
-        return view('customer.dashboard');
-    })->name('customer.dashboard');
+    Route::get('/customer/dashboard', [\App\Http\Controllers\CustomerDashboardController::class, 'index'])->name('customer.dashboard');
     
     // Customer addresses
     Route::resource('customer/addresses', CustomerAddressController::class, ['names' => 'customer.addresses']);
