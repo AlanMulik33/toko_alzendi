@@ -52,6 +52,7 @@ Route::middleware('auth:customer')->group(function(){
     Route::get('/transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
     Route::get('/transactions/{id}/nota', [TransactionController::class, 'nota'])->name('transactions.nota');
     Route::put('/transactions/{transaction}', [TransactionController::class, 'update'])->name('transactions.update');
+    Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy'])->name('transactions.destroy');
 });
 
 // Admin-only routes

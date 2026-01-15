@@ -279,6 +279,18 @@ class TransactionController extends Controller
                 }
                 return back()->with('success', 'Pesanan telah dikonfirmasi selesai!');
             }
+            // QRIS: upload bukti pembayaran
+            if ($request->input('action') === 'pay' && $transaction->status === 'pending' && $transaction->payment_method === 'qris') {
+                if ($request->hasFile('payment_proof')) {
+                    $file = $request->file('payment_proof');
+                    $path = $file->store('payment_proofs', 'public');
+                    $transaction->payment_proof = $path;
+                    $transaction->save();
+                    return back()->with('success', 'Bukti pembayaran berhasil diupload! Menunggu verifikasi admin.');
+                } else {
+                    return back()->with('error', 'File bukti pembayaran wajib diupload.');
+                }
+            }
         }
         return back()->with('error', 'Aksi tidak valid atau status tidak sesuai.');
     }

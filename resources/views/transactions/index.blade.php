@@ -71,6 +71,9 @@
                         <a href="{{ route('admin.transactions.nota', $trx->id) }}" class="btn btn-sm btn-success">Nota</a>
                     @else
                         <a href="{{ route('transactions.nota', $trx->id) }}" class="btn btn-sm btn-success">Nota</a>
+                        @if($trx->payment_method === 'qris' && $trx->status === 'pending' && !$trx->payment_proof)
+                            <a href="{{ route('transactions.show', $trx->id) }}" class="btn btn-sm btn-warning">Bayar</a>
+                        @endif
                         @if($trx->status === 'shipped')
                             <form action="{{ route('transactions.update', $trx->id) }}" method="POST" style="display:inline">
                                 @csrf

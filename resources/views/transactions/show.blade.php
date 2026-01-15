@@ -51,9 +51,51 @@
                     </tbody>
                 </table>
 
+
                 <div class="alert alert-info">
                     <strong>Total: Rp {{ number_format($transaction->total, 0, ',', '.') }}</strong>
                 </div>
+
+                @if($transaction->payment_method === 'qris')
+                    <div class="mb-3">
+                        <h5>QRIS Pembayaran</h5>
+                        @if($transaction->qris_code)
+                            <img src="{{ $transaction->qris_code }}" alt="QRIS Code" style="width:220px;height:220px;object-fit:contain;border:1px solid #ccc;padding:8px;background:#fff;">
+                        @else
+                            <span class="text-danger">QRIS tidak tersedia</span>
+                        @endif
+                        <div class="mt-2">
+                            <strong>Status Pembayaran: </strong>
+                            @if($transaction->status === 'pending')
+                                <span class="badge bg-warning text-dark">Menunggu Pembayaran</span>
+                            @elseif($transaction->status === 'verified')
+                                <span class="badge bg-success">Pembayaran Berhasil</span>
+                            @else
+                                <span class="badge bg-secondary">{{ ucfirst($transaction->status) }}</span>
+                            @endif
+                        </div>
+                        @if(auth('customer')->check() && $transaction->status === 'pending' && $transaction->customer_id == auth('customer')->id())
+                            <form action="{{ route('transactions.update', $transaction->id) }}" method="POST" enctype="multipart/form-data" class="mt-3">
+                                @csrf
+                                @method('PUT')
+                                <input type="hidden" name="action" value="pay">
+                                <div class="mb-2">
+                                    <label for="payment_proof" class="form-label">Upload Bukti Pembayaran</label>
+                                    <input type="file" name="payment_proof" id="payment_proof" class="form-control" accept="image/*" required>
+                                </div>
+                                <button type="submit" class="btn btn-success">Bayar</button>
+                            </form>
+                        @endif
+                        @if($transaction->payment_proof)
+                            <div class="mt-2">
+                                <strong>Bukti Pembayaran:</strong><br>
+                                <a href="{{ asset('storage/'.$transaction->payment_proof) }}" target="_blank">
+                                    <img src="{{ asset('storage/'.$transaction->payment_proof) }}" alt="Bukti Pembayaran" style="max-width:180px;max-height:180px;border:1px solid #ccc;">
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+                @endif
 
                 @if(auth('web')->check())
                     @if($transaction->status === 'pending')
