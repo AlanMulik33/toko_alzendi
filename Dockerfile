@@ -20,7 +20,7 @@ RUN docker-php-ext-configure gd \
     && docker-php-ext-install gd zip mbstring pdo pdo_mysql opcache
 
 # Install composer
-COPY --from=composer: 2 /usr/bin/composer 
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
