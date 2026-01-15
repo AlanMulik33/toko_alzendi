@@ -12,7 +12,12 @@
     </div>
 
     <!-- Quick Actions -->
-    <div class="row g-4">
+    <div class="row g-4 mb-4">
+        <div class="col-md-12">
+            <a href="{{ route('admin.transactions.offline.create') }}" class="btn btn-lg btn-success">
+                + Tambah Customer Offline
+            </a>
+        </div>
         <div class="col-md-3">
             <div class="card border-primary h-100">
                 <div class="card-body text-center">
@@ -39,7 +44,11 @@
             <div class="card border-info h-100">
                 <div class="card-body text-center">
                     <h2>💳</h2>
-                    <h5 class="card-title">View Transactions</h5>
+                    <h5 class="card-title">View Transactions
+                        @if(isset($pendingCount) && $pendingCount > 0)
+                            <span class="badge bg-danger ms-1">{{ $pendingCount }}</span>
+                        @endif
+                    </h5>
                     <p class="card-text text-muted">Lihat semua transaksi</p>
                     <a href="{{ route('admin.transactions.index') }}" class="btn btn-info btn-sm">Buka</a>
                 </div>

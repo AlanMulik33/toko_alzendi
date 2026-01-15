@@ -1,6 +1,6 @@
 <?php
-
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PublicController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TransactionController;
@@ -11,10 +11,12 @@ use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\CustomerAddressController;
 use App\Http\Controllers\QrisController;
 
-// Public routes (guest only)
+// Halaman utama (welcome)
 Route::get('/', function () {
     return view('welcome');
 });
+// Halaman publik produk, statistik, dll
+Route::get('/public', [PublicController::class, 'index'])->name('public.index');
 
 // QRIS routes (public)
 Route::get('/qris/merchant', [QrisController::class, 'merchantQris'])->name('qris.merchant');
@@ -49,17 +51,21 @@ Route::middleware('auth:customer')->group(function(){
     Route::get('/transactions/create', [TransactionController::class,'create'])->name('transactions.create');
     Route::get('/transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
     Route::get('/transactions/{id}/nota', [TransactionController::class, 'nota'])->name('transactions.nota');
+    Route::put('/transactions/{transaction}', [TransactionController::class, 'update'])->name('transactions.update');
 });
 
 // Admin-only routes
 Route::middleware(['auth:web', 'is_admin'])->group(function () {
     Route::get('/admin/dashboard', function () {
-        return view('admin.dashboard');
+        $pendingCount = \App\Models\Transaction::where('status', 'pending')->count();
+        return view('admin.dashboard', compact('pendingCount'));
     })->name('admin.dashboard');
     // Admin dapat mengelola produk, kategori, dan melihat semua transaksi
     Route::resource('products', ProductController::class);
     Route::resource('categories', CategoryController::class);
     // Admin transaction routes (manual untuk menghindari konflik dengan customer routes)
+    Route::get('/admin/transactions/offline/create', [TransactionController::class, 'offlineCreate'])->name('admin.transactions.offline.create');
+    Route::post('/admin/transactions/offline', [TransactionController::class, 'offlineStore'])->name('admin.transactions.offline.store');
     Route::get('/admin/transactions', [TransactionController::class,'index'])->name('admin.transactions.index');
     Route::get('/admin/transactions/{transaction}', [TransactionController::class,'show'])->name('admin.transactions.show');
     Route::get('/admin/transactions/{transaction}/nota', [TransactionController::class, 'nota'])->name('admin.transactions.nota');

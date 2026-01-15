@@ -12,6 +12,73 @@ use App\Services\QrisService;
 
 class TransactionController extends Controller
 {
+    /**
+     * Form transaksi offline (kasir/admin)
+     */
+    public function offlineCreate()
+    {
+        $products = Product::all();
+        return view('transactions.offline_create', compact('products'));
+    }
+
+    /**
+     * Proses transaksi offline (kasir/admin)
+     */
+    public function offlineStore(Request $request)
+    {
+        $request->validate([
+            'customer_name' => 'required|string|max:100',
+            'items' => 'required',
+            'uang_diterima' => 'required|numeric|min:0',
+        ]);
+
+        $items = is_string($request->items) ? json_decode($request->items, true) : $request->items;
+        if (empty($items)) {
+            return back()->withInput()->withErrors(['error' => 'Minimal 1 produk harus dipilih']);
+        }
+
+        $total = 0;
+        foreach ($items as $item) {
+            if (!empty($item['price']) && !empty($item['qty'])) {
+                $total += (float)$item['price'] * (int)$item['qty'];
+            }
+        }
+
+        if ($request->uang_diterima < $total) {
+            return back()->withInput()->withErrors(['error' => 'Uang diterima kurang dari total belanja']);
+        }
+
+        // Simpan transaksi offline (tanpa customer terdaftar)
+        $trx = DB::transaction(function() use ($request, $items, $total) {
+            $trx = Transaction::create([
+                'customer_id' => null,
+                'date' => now(),
+                'total' => $total,
+                'payment_method' => 'cash',
+                'notes' => 'Offline customer: ' . $request->customer_name,
+                'status' => 'completed',
+            ]);
+
+            foreach ($items as $item) {
+                if (empty($item['product_id']) || empty($item['qty']) || empty($item['price'])) continue;
+                $product = Product::find((int)$item['product_id']);
+                if ($product && $product->stock >= (int)$item['qty']) {
+                    TransactionDetail::create([
+                        'transaction_id' => $trx->id,
+                        'product_id' => (int)$item['product_id'],
+                        'qty' => (int)$item['qty'],
+                        'price' => (float)$item['price']
+                    ]);
+                    $product->decrement('stock', (int)$item['qty']);
+                }
+            }
+            return $trx;
+        });
+
+        // Redirect ke nota
+        return redirect()->route('admin.transactions.nota', $trx->id)
+            ->with('success', 'Transaksi offline berhasil. Kembalian: Rp ' . number_format($request->uang_diterima - $total, 0, ',', '.'));
+    }
     public function index(): \Illuminate\View\View
     {
         if (auth('customer')->check()) {
@@ -187,6 +254,35 @@ class TransactionController extends Controller
         return view('transactions.nota', compact('transaction'));
     }
 
+    public function update(Request $request, string $id)
+    {
+        $transaction = Transaction::findOrFail($id);
+        if (auth('web')->check()) {
+            if ($request->input('action') === 'verify' && $transaction->status === 'pending') {
+                $transaction->status = 'verified';
+                $transaction->save();
+                return back()->with('success', 'Transaksi berhasil diverifikasi!');
+            }
+            if ($request->input('action') === 'ship' && $transaction->status === 'verified') {
+                $transaction->status = 'shipped';
+                $transaction->save();
+                return back()->with('success', 'Pesanan sudah dikirim!');
+            }
+        }
+        if (auth('customer')->check() && $transaction->customer_id == auth('customer')->id()) {
+            if ($request->input('action') === 'complete' && $transaction->status === 'shipped') {
+                $transaction->status = 'completed';
+                $transaction->save();
+                // Kirim notifikasi ke semua admin
+                foreach (\App\Models\User::all() as $admin) {
+                    $admin->notify(new \App\Notifications\OrderCompletedNotification($transaction));
+                }
+                return back()->with('success', 'Pesanan telah dikonfirmasi selesai!');
+            }
+        }
+        return back()->with('error', 'Aksi tidak valid atau status tidak sesuai.');
+    }
+
     public function destroy(string $id)
     {
         $transaction = Transaction::with('details')->findOrFail($id);
@@ -199,11 +295,9 @@ class TransactionController extends Controller
                     $product->increment('stock', $detail->qty);
                 }
             }
-            
             // Hapus transaksi (detail akan terhapus otomatis via cascade)
             $transaction->forceDelete();
         });
-
         return redirect()->route(auth('customer')->check() ? 'transactions.index' : 'admin.transactions.index')->with('success', 'Transaksi berhasil dihapus');
     }
 }

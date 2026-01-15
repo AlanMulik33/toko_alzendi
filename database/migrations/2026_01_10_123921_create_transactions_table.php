@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('customer_id')->constrained();
             $table->date('date');
             $table->decimal('total',10,2);
+            $table->string('status')->default('pending'); // pending, verified, shipped, completed
             $table->timestamps();
         });
 

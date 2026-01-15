@@ -3,6 +3,12 @@
 @section('title', auth('customer')->check() ? 'My Transactions' : 'Daftar Transaksi')
 
 @section('content')
+@if(session('success'))
+    <div class="alert alert-success">{{ session('success') }}</div>
+@endif
+@if(session('error'))
+    <div class="alert alert-danger">{{ session('error') }}</div>
+@endif
 @if(auth('customer')->check())
     <h2>My Transactions</h2>
     <p>Riwayat transaksi Anda</p>
@@ -14,11 +20,12 @@
 <table class="table table-striped table-hover">
     <thead class="table-dark">
         <tr>
-            <th>ID</th>
+            <th>No</th>
             @if(!auth('customer')->check())
                 <th>Pelanggan</th>
             @endif
             <th>Tanggal</th>
+            <th>Status</th>
             <th>Total</th>
             <th>Aksi</th>
         </tr>
@@ -26,11 +33,34 @@
     <tbody>
         @forelse($transactions as $trx)
         <tr>
-            <td>{{ $trx->id }}</td>
+            <td>{{ ($transactions->currentPage() - 1) * $transactions->perPage() + $loop->iteration }}</td>
             @if(!auth('customer')->check())
-                <td>{{ $trx->customer->name }}</td>
+                <td>
+                    @if($trx->customer)
+                        {{ $trx->customer->name }}
+                    @elseif(Str::startsWith($trx->notes, 'Offline customer:'))
+                        {{ trim(Str::replace('Offline customer:', '', $trx->notes)) }}
+                    @else
+                        -
+                    @endif
+                </td>
             @endif
             <td>{{ is_string($trx->date) ? \Carbon\Carbon::parse($trx->date)->format('d-m-Y H:i') : $trx->date->format('d-m-Y H:i') }}</td>
+            <td>
+                @if($trx->customer_id === null)
+                    <span class="badge bg-success">Selesai</span>
+                @elseif($trx->status === 'pending')
+                    <span class="badge bg-warning text-dark">Menunggu Verifikasi</span>
+                @elseif($trx->status === 'verified')
+                    <span class="badge bg-info text-dark">Terverifikasi</span>
+                @elseif($trx->status === 'shipped')
+                    <span class="badge bg-primary">Dikirim</span>
+                @elseif($trx->status === 'completed')
+                    <span class="badge bg-success">Selesai</span>
+                @else
+                    <span class="badge bg-secondary">{{ $trx->status }}</span>
+                @endif
+            </td>
             <td>Rp {{ number_format((float)$trx->total, 0, ',', '.') }}</td>
             <td>
                 @if(auth('web')->check())
@@ -41,6 +71,14 @@
                         <a href="{{ route('admin.transactions.nota', $trx->id) }}" class="btn btn-sm btn-success">Nota</a>
                     @else
                         <a href="{{ route('transactions.nota', $trx->id) }}" class="btn btn-sm btn-success">Nota</a>
+                        @if($trx->status === 'shipped')
+                            <form action="{{ route('transactions.update', $trx->id) }}" method="POST" style="display:inline">
+                                @csrf
+                                @method('PUT')
+                                <input type="hidden" name="action" value="complete">
+                                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Konfirmasi pesanan sudah diterima?')">Konfirmasi Diterima</button>
+                            </form>
+                        @endif
                     @endif
                 @endif
                 @if(auth('web')->check())
