@@ -50,11 +50,23 @@ class CustomerAuthController extends Controller
             'name'=>'required',
             'username'=>'required|unique:customers,username',
             'email'=>'required|email|unique:customers,email',
+            'phone'=>'nullable|string',
+            'address'=>'required|string|min:10',
             'password'=>'required|min:6|confirmed',
         ]);
 
         $data['password'] = Hash::make($data['password']);
         $customer = Customer::create($data);
+        
+        // Simpan alamat dari register sebagai default
+        if (!empty($data['address'])) {
+            $customer->addresses()->create([
+                'address' => $data['address'],
+                'phone' => $data['phone'] ?? null,
+                'is_default' => true,
+            ]);
+        }
+        
         Auth::guard('customer')->login($customer);
         return redirect()->route('customer.dashboard');
     }

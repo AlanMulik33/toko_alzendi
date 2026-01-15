@@ -43,8 +43,9 @@
                                 <input type="text" class="form-control" id="phone" name="phone">
                             </div>
                             <div class="mb-3">
-                                <label for="address" class="form-label">Address</label>
-                                <textarea class="form-control" id="address" name="address"></textarea>
+                                <label for="address" class="form-label">Alamat <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="address" name="address" rows="3" required></textarea>
+                                <small class="text-muted">Alamat ini akan dijadikan alamat default Anda</small>
                             </div>
                             <div class="mb-3">
                                 <label for="password" class="form-label">Password</label>

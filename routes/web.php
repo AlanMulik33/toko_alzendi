@@ -8,6 +8,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\AdminAuthController;
+use App\Http\Controllers\CustomerAddressController;
 
 // Public routes (guest only)
 Route::get('/', function () {
@@ -31,6 +32,12 @@ Route::middleware('auth:customer')->group(function(){
     Route::get('/customer/dashboard', function () {
         return view('customer.dashboard');
     })->name('customer.dashboard');
+    
+    // Customer addresses
+    Route::resource('customer.addresses', CustomerAddressController::class);
+    Route::post('customer.addresses/{address}/set-default', [CustomerAddressController::class, 'setDefault'])
+        ->name('customer.addresses.setDefault');
+    
     // Customer dapat melihat transaksi miliknya dan membuat transaksi baru
     Route::get('/transactions', [TransactionController::class,'index'])->name('transactions.index');
     Route::post('/transactions', [TransactionController::class,'store'])->name('transactions.store');

@@ -33,8 +33,11 @@ class TransactionController extends Controller
         try {
             // Tentukan customer_id berdasarkan guard
             $customer_id = null;
+            $address_id = null;
+            
             if (auth('customer')->check()) {
                 $customer_id = auth('customer')->id();
+                $address_id = $request->address_id;
             } else {
                 $customer_id = $request->customer_id;
             }
@@ -48,9 +51,12 @@ class TransactionController extends Controller
             if (!$customer_id) {
                 $rules['customer_id'] = 'required|exists:customers,id';
             }
+            if ($customer_id && !$address_id) {
+                $rules['address_id'] = 'required|exists:customer_addresses,id';
+            }
             $request->validate($rules);
 
-            $trx = DB::transaction(function() use ($request, $customer_id) {
+            $trx = DB::transaction(function() use ($request, $customer_id, $address_id) {
                 try {
                 // Parse items jika string JSON
                 $items = is_string($request->items) ? json_decode($request->items, true) : $request->items;
@@ -68,12 +74,23 @@ class TransactionController extends Controller
                     }
                 }
 
+                // Ambil alamat jika ada
+                $addressData = [];
+                if ($address_id) {
+                    $address = \App\Models\CustomerAddress::find($address_id);
+                    if ($address && $address->customer_id === $customer_id) {
+                        $addressData['address_id'] = $address_id;
+                        $addressData['address_snapshot'] = "Label: {$address->label}\nAlamat: {$address->address}\nTelepon: {$address->phone}";
+                    }
+                }
+
                 // Buat transaksi
                 $trx = Transaction::create([
                     'customer_id' => $customer_id,
                     'date' => now(),
                     'total' => $total > 0 ? $total : (float)$request->total,
-                    'payment_method' => $request->payment_method
+                    'payment_method' => $request->payment_method,
+                    ...$addressData
                 ]);
 
                 \Log::info('Transaction created', ['trx_id' => $trx->id]);

@@ -43,5 +43,13 @@ class Customer extends Authenticatable {
     public function transactions() {
         return $this->hasMany(Transaction::class);
     }
+
+    public function addresses() {
+        return $this->hasMany(CustomerAddress::class);
+    }
+
+    public function defaultAddress() {
+        return $this->hasOne(CustomerAddress::class)->where('is_default', true);
+    }
 }
 

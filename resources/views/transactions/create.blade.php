@@ -37,6 +37,29 @@
                         @endif
                     </div>
                 </div>
+                
+                @if(auth('customer')->check())
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="address_id" class="form-label">Alamat Pengiriman <span class="text-danger">*</span></label>
+                        <select class="form-control @error('address_id') is-invalid @enderror" id="address_id" name="address_id" required>
+                            <option value="">-- Pilih Alamat --</option>
+                            @forelse(auth('customer')->user()->addresses as $address)
+                                <option value="{{ $address->id }}" @selected(old('address_id', $address->is_default ? $address->id : null))>
+                                    @if($address->label){{ $address->label }} - @endif{{ Str::limit($address->address, 50) }}
+                                    @if($address->is_default)<span class="badge bg-primary">Default</span>@endif
+                                </option>
+                            @empty
+                                <option value="" disabled>Tambahkan alamat di profil terlebih dahulu</option>
+                            @endforelse
+                        </select>
+                        <small class="text-muted">
+                            <a href="{{ route('customer.addresses.index') }}" target="_blank">Kelola alamat</a>
+                        </small>
+                        @error('address_id')<span class="invalid-feedback d-block">{{ $message }}</span>@enderror
+                    </div>
+                </div>
+                @endif
             </div>
 
             <h4>Detail Transaksi</h4>
