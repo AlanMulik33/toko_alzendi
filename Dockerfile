@@ -6,7 +6,8 @@ RUN apk add --no-cache nginx supervisor nodejs npm \
     libjpeg-turbo-dev \
     libpng-dev \
     libzip-dev \
-    oniguruma-dev
+    oniguruma-dev \
+    gettext
 
 # Install PHP extensions
 RUN docker-php-ext-configure gd \
