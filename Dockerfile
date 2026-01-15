@@ -1,48 +1,37 @@
 FROM php:8.4-fpm-alpine
 
-# Install nginx and supervisor
-RUN apk add --no-cache nginx supervisor nodejs npm
-
-# Install system deps for gd
-RUN apk add --no-cache \
+# Install nginx, supervisor, node
+RUN apk add --no-cache nginx supervisor nodejs npm \
     freetype-dev \
     libjpeg-turbo-dev \
-    libpng-dev
+    libpng-dev \
+    libzip-dev \
+    oniguruma-dev
 
-# Install PHP extensions (including gd)
+# Install PHP extensions
 RUN docker-php-ext-configure gd \
         --with-freetype \
         --with-jpeg \
-    && docker-php-ext-install gd pdo pdo_mysql opcache
-
+    && docker-php-ext-install gd zip mbstring pdo pdo_mysql opcache
 
 # Install composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Copy application files first
 COPY . .
 
-# Install composer dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Install npm dependencies and build
-RUN npm install
+RUN npm install && npm run build
 
-# Build frontend assets
-RUN npm run build
-
-# Copy config files
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 COPY docker/supervisord.conf /etc/supervisord.conf
 COPY docker/start.sh /start.sh
 
-# Set permissions and prepare for SQLite
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 storage bootstrap/cache \
     && chmod +x /start.sh
 
 EXPOSE 80
-
 CMD ["/start.sh"]
