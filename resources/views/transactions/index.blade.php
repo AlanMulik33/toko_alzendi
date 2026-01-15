@@ -8,7 +8,6 @@
     <p>Riwayat transaksi Anda</p>
 @else
     <h2>Daftar Transaksi</h2>
-    <a href="{{ route('transactions.create') }}" class="btn btn-primary mb-3">Tambah Transaksi</a>
     <a href="{{ route('report.transactions.pdf') }}" class="btn btn-success mb-3">Cetak PDF</a>
 @endif
 
@@ -38,7 +37,11 @@
                     <a href="{{ route('admin.transactions.show', $trx->id) }}" class="btn btn-sm btn-info">Lihat</a>
                 @endif
                 @if($trx->customer_id == auth('customer')->id() || auth('web')->check())
-                    <a href="{{ route('transactions.nota', $trx->id) }}" class="btn btn-sm btn-success">Nota</a>
+                    @if(auth('web')->check())
+                        <a href="{{ route('admin.transactions.nota', $trx->id) }}" class="btn btn-sm btn-success">Nota</a>
+                    @else
+                        <a href="{{ route('transactions.nota', $trx->id) }}" class="btn btn-sm btn-success">Nota</a>
+                    @endif
                 @endif
                 @if(auth('web')->check())
                     <form action="{{ route('admin.transactions.destroy', $trx->id) }}" method="POST" style="display:inline">

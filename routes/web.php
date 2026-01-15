@@ -50,6 +50,7 @@ Route::middleware(['auth:web', 'is_admin'])->group(function () {
     // Admin transaction routes (manual untuk menghindari konflik dengan customer routes)
     Route::get('/admin/transactions', [TransactionController::class,'index'])->name('admin.transactions.index');
     Route::get('/admin/transactions/{transaction}', [TransactionController::class,'show'])->name('admin.transactions.show');
+    Route::get('/admin/transactions/{transaction}/nota', [TransactionController::class, 'nota'])->name('admin.transactions.nota');
     Route::get('/admin/transactions/{transaction}/edit', [TransactionController::class,'edit'])->name('admin.transactions.edit');
     Route::put('/admin/transactions/{transaction}', [TransactionController::class,'update'])->name('admin.transactions.update');
     Route::delete('/admin/transactions/{transaction}', [TransactionController::class,'destroy'])->name('admin.transactions.destroy');

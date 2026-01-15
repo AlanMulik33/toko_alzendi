@@ -225,7 +225,7 @@
     <!-- Action Buttons (tidak akan di-print) -->
     <div class="action-buttons">
         <button onclick="window.print()" class="btn btn-primary btn-print">🖨️ Cetak Nota</button>
-        <a href="{{ route('transactions.index') }}" class="btn btn-secondary btn-print">← Kembali ke Daftar</a>
+        <a href="{{ auth('web')->check() ? route('admin.transactions.index') : route('transactions.index') }}" class="btn btn-secondary btn-print">← Kembali ke Daftar</a>
     </div>
 
     <script>
