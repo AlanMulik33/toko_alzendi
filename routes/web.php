@@ -58,7 +58,7 @@ Route::middleware('auth:customer')->group(function(){
 // Admin-only routes
 Route::middleware(['auth:web', 'is_admin'])->group(function () {
     Route::get('/admin/dashboard', function () {
-        $pendingCount = \App\Models\Transaction::where('status', 'pending')->count();
+        $pendingCount = \App\Models\Transaction::where('status', '=', 'pending')->count();
         return view('admin.dashboard', compact('pendingCount'));
     })->name('admin.dashboard');
     // Admin dapat mengelola produk, kategori, dan melihat semua transaksi
