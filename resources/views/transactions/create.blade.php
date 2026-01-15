@@ -46,7 +46,7 @@
                             <option value="">-- Pilih Alamat --</option>
                             @forelse(auth('customer')->user()->addresses as $address)
                                 <option value="{{ $address->id }}" @selected(old('address_id', $address->is_default ? $address->id : null))>
-                                    @if($address->label){{ $address->label }} - @endif{{ Str::limit($address->address, 50) }}
+                                    @if($address->label){{ $address->label }} - @endif{{ substr($address->address, 0, 50) }}{{ strlen($address->address) > 50 ? '...' : '' }}
                                     @if($address->is_default)<span class="badge bg-primary">Default</span>@endif
                                 </option>
                             @empty
