@@ -3,77 +3,142 @@
 @section('title', 'Tambah Alamat')
 
 @section('content')
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h3>Tambah Alamat Baru</h3>
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card card-custom shadow-soft border-0 overflow-hidden">
+                <div class="card-header-custom d-flex align-items-center">
+                    <div class="bg-white bg-opacity-20 rounded-circle d-flex align-items-center justify-content-center me-3" 
+                         style="width: 60px; height: 60px;">
+                        <i class="bi bi-geo-alt text-white" style="font-size: 1.8rem;"></i>
+                    </div>
+                    <div>
+                        <h1 class="h2 mb-1 text-white">Tambah Alamat Baru</h1>
+                        <p class="mb-0 text-white opacity-75">
+                            <i class="bi bi-plus-circle me-1"></i>Tambah alamat pengiriman baru
+                        </p>
+                    </div>
                 </div>
-                <div class="card-body">
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card card-custom shadow-soft border-0">
+                <div class="card-header-custom">
+                    <h3 class="mb-0 text-white"><i class="bi bi-geo-alt-fill me-2"></i>Form Alamat Baru</h3>
+                </div>
+                <div class="card-body p-4">
                     @if($errors->any())
-                        <div class="alert alert-danger">
-                            <ul class="mb-0">
-                                @foreach($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
+                    <div class="alert alert-danger alert-custom mb-4">
+                        <div class="d-flex">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <div>
+                                <strong class="d-block">Validasi Error</strong>
+                                <ul class="mb-0 mt-1 ps-3">
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
                         </div>
+                    </div>
                     @endif
+
+                    @php
+                        $hasAddresses = auth('customer')->user()->addresses()->count() > 0;
+                        $fromTransaction = request('from') === 'transaction';
+                    @endphp
 
                     <form action="{{ route('customer.addresses.store') }}" method="POST">
                         @csrf
 
-                        <div class="mb-3">
-                            <label for="label" class="form-label">Label Alamat <small>(contoh: Rumah, Kantor, Toko)</small></label>
-                            <input type="text" class="form-control @error('label') is-invalid @enderror" 
-                                   id="label" name="label" value="{{ old('label') }}" placeholder="e.g., Rumah">
-                            @error('label')
-                                <span class="invalid-feedback">{{ $message }}</span>
-                            @enderror
+                        @if($fromTransaction)
+                        <div class="alert alert-info alert-custom mb-4">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Anda sedang menambah alamat dari halaman transaksi
                         </div>
-
-                        <div class="mb-3">
-                            <label for="address" class="form-label">Alamat Lengkap <span class="text-danger">*</span></label>
-                            <textarea class="form-control @error('address') is-invalid @enderror" 
-                                      id="address" name="address" rows="4" required
-                                      placeholder="Jln. ... No. ..., Kota, Provinsi, Kode Pos">{{ old('address') }}</textarea>
-                            @error('address')
-                                <span class="invalid-feedback">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="phone" class="form-label">Nomor Telepon</label>
-                            <input type="text" class="form-control @error('phone') is-invalid @enderror" 
-                                   id="phone" name="phone" value="{{ old('phone') }}" placeholder="08xxxxxxxxxx">
-                            @error('phone')
-                                <span class="invalid-feedback">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        @php
-                            $hasAddresses = auth('customer')->user()->addresses()->count() > 0;
-                            $fromTransaction = request('from') === 'transaction';
-                        @endphp
-
-                        @if($hasAddresses)
-                            <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" id="is_default" name="is_default" value="1">
-                                <label class="form-check-label" for="is_default">
-                                    Jadikan alamat default
-                                </label>
-                            </div>
-                        @else
-                            <p class="text-muted small">Alamat ini akan dijadikan default karena ini adalah alamat pertama Anda.</p>
                         @endif
 
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">Simpan Alamat</button>
+                        <div class="mb-4">
+                            <label for="label" class="form-label fw-bold">
+                                <i class="bi bi-tag me-1"></i>Label Alamat
+                                <small class="text-muted ms-1">(contoh: Rumah, Kantor, Toko)</small>
+                            </label>
+                            <input type="text" class="form-control form-control-custom @error('label') is-invalid @enderror" 
+                                   id="label" name="label" value="{{ old('label') }}" 
+                                   placeholder="e.g., Rumah, Kantor, Apartemen">
+                            @error('label')
+                                <div class="invalid-feedback d-flex align-items-center mt-1">
+                                    <i class="bi bi-exclamation-circle me-2"></i>{{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="address" class="form-label fw-bold">
+                                <i class="bi bi-geo-alt me-1"></i>Alamat Lengkap <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control form-control-custom @error('address') is-invalid @enderror" 
+                                      id="address" name="address" rows="4" required
+                                      placeholder="Masukkan alamat lengkap (jalan, nomor, kota, provinsi, kode pos)">{{ old('address') }}</textarea>
+                            @error('address')
+                                <div class="invalid-feedback d-flex align-items-center mt-1">
+                                    <i class="bi bi-exclamation-circle me-2"></i>{{ $message }}
+                                </div>
+                            @enderror
+                            <small class="text-muted mt-1 d-block">
+                                <i class="bi bi-info-circle me-1"></i>Pastikan alamat lengkap dan jelas untuk pengiriman
+                            </small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="phone" class="form-label fw-bold">
+                                <i class="bi bi-telephone me-1"></i>Nomor Telepon
+                            </label>
+                            <input type="text" class="form-control form-control-custom @error('phone') is-invalid @enderror" 
+                                   id="phone" name="phone" value="{{ old('phone') }}" 
+                                   placeholder="08xxxxxxxxxx (opsional)">
+                            @error('phone')
+                                <div class="invalid-feedback d-flex align-items-center mt-1">
+                                    <i class="bi bi-exclamation-circle me-2"></i>{{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+
+                        @if($hasAddresses)
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="is_default" name="is_default" value="1">
+                                <label class="form-check-label fw-bold" for="is_default">
+                                    <i class="bi bi-star me-1"></i>Jadikan alamat default
+                                </label>
+                            </div>
+                            <small class="text-muted mt-1 d-block">
+                                <i class="bi bi-info-circle me-1"></i>Alamat default akan digunakan sebagai alamat pengiriman utama
+                            </small>
+                        </div>
+                        @else
+                        <div class="alert alert-info alert-custom">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Alamat ini akan dijadikan default karena ini adalah alamat pertama Anda.
+                        </div>
+                        @endif
+
+                        <div class="d-flex gap-3 mt-4 pt-4 border-top">
+                            <button type="submit" class="btn btn-primary-custom flex-fill">
+                                <i class="bi bi-check-circle me-2"></i>Simpan Alamat
+                            </button>
                             @if($fromTransaction)
-                                <a href="{{ route('transactions.create') }}" class="btn btn-secondary">← Kembali ke Transaksi</a>
+                                <a href="{{ route('transactions.create') }}" class="btn btn-outline-secondary flex-fill">
+                                    <i class="bi bi-arrow-left me-2"></i>Kembali ke Transaksi
+                                </a>
                             @else
-                                <a href="{{ route('customer.addresses.index') }}" class="btn btn-secondary">Batal</a>
+                                <a href="{{ route('customer.addresses.index') }}" class="btn btn-outline-secondary flex-fill">
+                                    <i class="bi bi-x-circle me-2"></i>Batal
+                                </a>
                             @endif
                         </div>
                     </form>
@@ -82,4 +147,16 @@
         </div>
     </div>
 </div>
+
+<style>
+    .form-check-input:checked {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+    
+    .form-check-label {
+        cursor: pointer;
+        user-select: none;
+    }
+</style>
 @endsection
