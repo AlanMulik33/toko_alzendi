@@ -13,26 +13,15 @@ fi
 if ! grep -q "^APP_KEY=base64:" /var/www/html/.env; then
     echo "Generating APP_KEY..."
     cd /var/www/html
-    php artisan key:generate || echo "Warning: Could not generate APP_KEY"
+    php artisan key:generate 2>&1 || echo "Warning: Could not generate APP_KEY"
 fi
 
-# Fix permissions
-echo "Fixing permissions..."
-chown -R www-data:www-data /var/www/html
-chmod -R 755 /var/www/html/storage
-chmod -R 755 /var/www/html/bootstrap/cache
-find /var/www/html/storage -type f -exec chmod 644 {} \;
-find /var/www/html/bootstrap/cache -type f -exec chmod 644 {} \;
-
-# Create storage directories
-mkdir -p /var/www/html/storage/logs
-chown -R www-data:www-data /var/www/html/storage/logs
-chmod 755 /var/www/html/storage/logs
-
-# Run migrations
 echo "Running migrations..."
 cd /var/www/html
 php artisan migrate --force 2>&1 || echo "Warning: Migrations failed"
+
+echo "Starting supervisord..."
+exec /usr/bin/supervisord -c /etc/supervisord.conf
 
 # Create php-fpm socket directory (CRITICAL)
 mkdir -p /var/run/php-fpm
