@@ -58,9 +58,11 @@ fi
 
 # 5) Run migrations (best-effort)
 echo "Running migrations..."
-cd /var/www/html
-php artisan migrate --force
-php artisan db:seed --force || echo "Seeder skipped"
+php artisan migrate --force || true
+
+echo "Running seeders..."
+php artisan db:seed --force || true
+
 
 # 6) Start supervisord (php-fpm + nginx)
 echo "Starting supervisord..."
