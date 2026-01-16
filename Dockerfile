@@ -42,6 +42,6 @@ RUN mkdir -p /var/log/supervisor /var/run/php-fpm /var/www/html/storage/logs && 
     chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache && \
     chmod +x /start.sh
 
-EXPOSE 8080
+EXPOSE ${PORT}
 
 CMD ["/start.sh"]
