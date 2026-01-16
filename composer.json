@@ -34,9 +34,7 @@
         }
     },
     "scripts": {
-
-          "post-install-cmd": [
-            "php artisan key:generate --force",
+        "post-deploy": [
             "php artisan migrate --force",
             "php artisan db:seed --force"
         ],
