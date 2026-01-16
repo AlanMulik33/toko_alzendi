@@ -62,13 +62,13 @@ php artisan migrate --force || true
 
 echo "Running seeders..."
 php artisan db:seed --force || true
+php artisan storage:link || true
 
 php artisan optimize:clear
 php artisan optimize
 php artisan config:clear
 php artisan route:clear
 php artisan view:clear
-
 
 # 6) Start supervisord (php-fpm + nginx)
 mkdir -p /var/lib/nginx/tmp /var/lib/nginx/tmp/fastcgi
