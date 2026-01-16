@@ -25,11 +25,6 @@
                         <i class="bi bi-person-plus me-2"></i>Tambah Customer Offline
                     </a>
                 </div>
-                <div class="card-body bg-light bg-gradient">
-                    <p class="lead mb-0">
-                        <i class="bi bi-gear me-2"></i>Kelola toko Anda dari dashboard ini dengan mudah dan efisien
-                    </p>
-                </div>
             </div>
         </div>
     </div>
@@ -144,102 +139,6 @@
                                 </div>
                             </a>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Recent Activity -->
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card card-custom shadow-soft border-0 h-100">
-                <div class="card-header-custom">
-                    <h3 class="mb-0 text-white"><i class="bi bi-clock-history me-2"></i>Aktivitas Terbaru</h3>
-                </div>
-                <div class="card-body p-4">
-                    @if(isset($recentActivities) && count($recentActivities) > 0)
-                    <div class="timeline">
-                        @foreach($recentActivities as $activity)
-                        <div class="timeline-item d-flex mb-3">
-                            <div class="timeline-marker rounded-circle d-flex align-items-center justify-content-center me-3" 
-                                 style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), var(--secondary));">
-                                <i class="bi bi-{{ $activity['icon'] ?? 'circle' }} text-white"></i>
-                            </div>
-                            <div class="timeline-content flex-fill">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <h6 class="fw-bold mb-1">{{ $activity['title'] }}</h6>
-                                    <small class="text-muted">{{ $activity['time'] }}</small>
-                                </div>
-                                <p class="text-muted mb-0">{{ $activity['description'] }}</p>
-                            </div>
-                        </div>
-                        @endforeach
-                    </div>
-                    @else
-                    <div class="text-center py-5">
-                        <i class="bi bi-activity" style="font-size: 3rem; color: var(--gray);"></i>
-                        <h5 class="mt-3 text-muted">Belum ada aktivitas</h5>
-                        <p class="text-muted">Mulai kelola toko Anda untuk melihat aktivitas di sini</p>
-                    </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card card-custom shadow-soft border-0 h-100">
-                <div class="card-header-custom">
-                    <h3 class="mb-0 text-white"><i class="bi bi-info-circle me-2"></i>Info Toko</h3>
-                </div>
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center mb-4">
-                        <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" 
-                             style="width: 50px; height: 50px;">
-                            <i class="bi bi-shop text-primary" style="font-size: 1.5rem;"></i>
-                        </div>
-                        <div>
-                            <h5 class="fw-bold mb-1">Toko Alzendi</h5>
-                            <p class="text-muted mb-0">Dashboard Admin</p>
-                        </div>
-                    </div>
-                    
-                    <div class="list-group list-group-flush">
-                        <div class="list-group-item bg-transparent border-bottom px-0 py-3">
-                            <div class="d-flex justify-content-between">
-                                <span class="text-muted">Total Produk</span>
-                                <span class="fw-bold">{{ isset($stats['products']) ? number_format($stats['products']['count']) : '0' }}</span>
-                            </div>
-                        </div>
-                        <div class="list-group-item bg-transparent border-bottom px-0 py-3">
-                            <div class="d-flex justify-content-between">
-                                <span class="text-muted">Total Kategori</span>
-                                <span class="fw-bold">{{ isset($stats['categories']) ? number_format($stats['categories']['count']) : '0' }}</span>
-                            </div>
-                        </div>
-                        <div class="list-group-item bg-transparent border-bottom px-0 py-3">
-                            <div class="d-flex justify-content-between">
-                                <span class="text-muted">Transaksi Hari Ini</span>
-                                <span class="fw-bold">{{ isset($stats['today_transactions']) ? number_format($stats['today_transactions']['count']) : '0' }}</span>
-                            </div>
-                        </div>
-                        <div class="list-group-item bg-transparent px-0 py-3">
-                            <div class="d-flex justify-content-between">
-                                <span class="text-muted">Customer Terdaftar</span>
-                                <span class="fw-bold">{{ isset($stats['customers']) ? number_format($stats['customers']['count']) : '0' }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-4 pt-3 border-top">
-                        <a href="{{ route('admin.logout') }}" 
-                           onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
-                           class="btn btn-outline-danger w-100">
-                            <i class="bi bi-box-arrow-right me-2"></i>Logout Admin
-                        </a>
-                        <form id="logout-form" action="{{ route('admin.logout') }}" method="POST" class="d-none">
-                            @csrf
-                        </form>
                     </div>
                 </div>
             </div>
