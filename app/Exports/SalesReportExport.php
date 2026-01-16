@@ -51,6 +51,7 @@ class LaporanPenjualanSheet implements FromCollection, WithTitle, WithHeadings, 
                 transactions.date,
                 transactions.payment_method,
                 transactions.customer_id,
+                customers.name as customer_name,
                 transactions.notes,
                 products.name as product_name,
                 categories.name as category_name,
@@ -73,11 +74,9 @@ class LaporanPenjualanSheet implements FromCollection, WithTitle, WithHeadings, 
 
         // Set payment_method dan nama pelanggan untuk offline
         foreach ($details as $detail) {
-            if (empty($detail->payment_method)) {
-                $detail->payment_method = 'cash';
-            }
-            if (empty($detail->customer_id)) {
-                // Cek notes offline
+            $detail->payment_method = $detail->payment_method ?: 'cash';
+
+            if (empty($detail->customer_name)) {
                 if (!empty($detail->notes) && \Illuminate\Support\Str::startsWith($detail->notes, 'Offline customer:')) {
                     $detail->customer_name = trim(str_replace('Offline customer:', '', $detail->notes));
                 } else {
@@ -85,6 +84,7 @@ class LaporanPenjualanSheet implements FromCollection, WithTitle, WithHeadings, 
                 }
             }
         }
+
 
         // Group by payment_method
         $grouped = $details->groupBy('payment_method');
