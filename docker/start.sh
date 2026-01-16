@@ -63,6 +63,8 @@ php artisan migrate --force || true
 echo "Running seeders..."
 php artisan db:seed --force || true
 
+php artisan optimize:clear
+php artisan optimize
 
 # 6) Start supervisord (php-fpm + nginx)
 echo "Starting supervisord..."

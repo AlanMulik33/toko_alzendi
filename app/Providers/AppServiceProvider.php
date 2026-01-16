@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use App\Models\CustomerAddress;
 use App\Policies\CustomerAddressPolicy;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,8 +21,12 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
+
     public function boot(): void
     {
-        Gate::policy(CustomerAddress::class, CustomerAddressPolicy::class);
+        if (app()->environment('production')) {
+            URL::forceScheme('https');
+        }
     }
+
 }
