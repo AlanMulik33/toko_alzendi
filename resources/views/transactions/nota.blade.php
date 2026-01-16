@@ -252,7 +252,7 @@
         @if($transaction->payment_method === 'qris' && $transaction->qris_code)
             <div style="text-align: center; margin-bottom: 20px; padding: 15px; background-color: #f9f9f9; border-radius: 4px;">
                 <div style="font-size: 11px; font-weight: bold; margin-bottom: 10px;">SCAN UNTUK PEMBAYARAN:</div>
-                <img src="{{ $transaction->qris_code }}" alt="QRIS Code" style="width: 200px; height: 200px; border: 1px solid #ddd; padding: 5px; background-color: white;">
+                <img src="{{ asset('qris.jpg') }}" alt="QRIS Code" style="width: 200px; height: 200px; border: 1px solid #ddd; padding: 5px; background-color: white;">
                 <div style="font-size: 10px; color: #666; margin-top: 8px;">Nominal: Rp {{ number_format($transaction->total, 0, ',', '.') }}</div>
             </div>
         @endif
