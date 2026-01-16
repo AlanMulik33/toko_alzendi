@@ -169,13 +169,25 @@
             </div>
             <div class="nota-info-row">
                 <span class="nota-info-label">Pelanggan:</span>
-                <span>{{ $transaction->customer->name }}</span>
+                <span>
+                    @if($transaction->customer)
+                        {{ $transaction->customer->name }}
+                    @else
+                        {{ $transaction->notes ?? 'Customer Offline' }}
+                    @endif
+                </span>
             </div>
             <div class="nota-info-row">
                 <span class="nota-info-label">Kontak:</span>
-                <span>{{ $transaction->customer->phone ?? '-' }}</span>
+                <span>
+                    @if($transaction->customer)
+                        {{ $transaction->customer->phone ?? '-' }}
+                    @else
+                        -
+                    @endif
+                </span>
             </div>
-            @if($transaction->customer->defaultAddress)
+            @if($transaction->customer && $transaction->customer->defaultAddress)
             <div class="nota-info-row">
                 <span class="nota-info-label">Alamat:</span>
                 <span>{{ $transaction->customer->defaultAddress->address }}</span>
@@ -203,6 +215,24 @@
             <span>TOTAL:</span>
             <span>Rp {{ number_format($transaction->total, 0, ',', '.') }}</span>
         </div>
+
+        @php
+            $uangCustomer = $transaction->uang_diterima ?? $transaction->total;
+            $kembalian = $transaction->kembalian ?? 0;
+        @endphp
+        <div class="nota-payment">
+            <div class="nota-payment-label">Uang Customer:</div>
+            <div class="nota-payment-method">Rp {{ number_format($uangCustomer, 0, ',', '.') }}</div>
+        </div>
+        <div class="nota-payment">
+            <div class="nota-payment-label">Total Belanja:</div>
+            <div class="nota-payment-method">Rp {{ number_format($transaction->total, 0, ',', '.') }}</div>
+        </div>
+        <div class="nota-payment">
+            <div class="nota-payment-label">Kembalian:</div>
+            <div class="nota-payment-method">Rp {{ number_format($kembalian, 0, ',', '.') }}</div>
+        </div>
+
 
         <!-- Metode Pembayaran -->
         <div class="nota-payment">

@@ -49,11 +49,15 @@ class TransactionController extends Controller
         }
 
         // Simpan transaksi offline (tanpa customer terdaftar)
-        $trx = DB::transaction(function() use ($request, $items, $total) {
+        $uangDiterima = $request->uang_diterima;
+        $kembalian = $uangDiterima - $total;
+        $trx = DB::transaction(function() use ($request, $items, $total, $uangDiterima, $kembalian) {
             $trx = Transaction::create([
                 'customer_id' => null,
                 'date' => now(),
                 'total' => $total,
+                'uang_diterima' => $uangDiterima,
+                'kembalian' => $kembalian,
                 'payment_method' => 'cash',
                 'notes' => 'Offline customer: ' . $request->customer_name,
                 'status' => 'completed',
