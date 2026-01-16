@@ -247,16 +247,16 @@
                             @endif
                             
                             @if($transaction->payment_proof)
-                            <div class="mt-4">
-                                <div class="fw-bold text-muted mb-2">Bukti Pembayaran</div>
-                                <div class="border rounded p-3 bg-white">
-                                    <a href="{{ asset('storage/'.$transaction->payment_proof) }}" target="_blank">
-                                        <img src="{{ asset('storage/'.$transaction->payment_proof) }}" 
-                                             alt="Bukti Pembayaran" 
-                                             style="max-width: 100%; max-height: 200px; object-fit: contain;">
-                                    </a>
+                                <div class="mt-4">
+                                    <div class="fw-bold text-muted mb-2">Bukti Pembayaran</div>
+                                    <div class="border rounded p-3 bg-white">
+                                        <a href="{{ $transaction->payment_proof }}" target="_blank">
+                                            <img src="{{ $transaction->payment_proof }}"
+                                                alt="Bukti Pembayaran"
+                                                style="max-width: 100%; max-height: 200px; object-fit: contain;">
+                                        </a>
+                                    </div>
                                 </div>
-                            </div>
                             @endif
                         </div>
                     </div>

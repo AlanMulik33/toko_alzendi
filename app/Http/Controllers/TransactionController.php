@@ -9,6 +9,8 @@ use App\Models\TransactionDetail;
 use App\Models\Product;
 use App\Models\Customer;
 use App\Services\QrisService;
+use App\Services\CloudinaryService;
+
 
 class TransactionController extends Controller
 {
@@ -285,15 +287,30 @@ class TransactionController extends Controller
             }
             // QRIS: upload bukti pembayaran
             if ($request->input('action') === 'pay' && $transaction->status === 'pending' && $transaction->payment_method === 'qris') {
-                if ($request->hasFile('payment_proof')) {
-                    $file = $request->file('payment_proof');
-                    $path = $file->store('payment_proofs', 'public');
-                    $transaction->payment_proof = $path;
-                    $transaction->save();
-                    return back()->with('success', 'Bukti pembayaran berhasil diupload! Menunggu verifikasi admin.');
-                } else {
-                    return back()->with('error', 'File bukti pembayaran wajib diupload.');
-                }
+                if (
+                        $request->input('action') === 'pay' &&
+                        $transaction->status === 'pending' &&
+                        $transaction->payment_method === 'qris'
+                    ) {
+                        $request->validate([
+                            'payment_proof' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+                        ]);
+
+                        $imageUrl = CloudinaryService::upload(
+                            $request->file('payment_proof'),
+                            'payment_proofs'
+                        );
+
+                        $transaction->update([
+                            'payment_proof' => $imageUrl,
+                        ]);
+
+                        return back()->with(
+                            'success',
+                            'Bukti pembayaran berhasil diupload! Menunggu verifikasi admin.'
+                        );
+                    }
+
             }
         }
         return back()->with('error', 'Aksi tidak valid atau status tidak sesuai.');
