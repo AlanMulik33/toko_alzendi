@@ -213,7 +213,7 @@
                             <div class="mb-4">
                                 <div class="fw-bold text-muted mb-2">Kode QRIS</div>
                                 <div class="border rounded p-3 bg-white">
-                                    <img src="{{ $transaction->qris_code }}" alt="QRIS Code" 
+                                    <img src="{{ asset('qris.jpg') }}" alt="QRIS Code" 
                                          style="width: 200px; height: 200px; object-fit: contain;">
                                 </div>
                             </div>
