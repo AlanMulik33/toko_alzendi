@@ -32,7 +32,13 @@
             @foreach($transactions as $trx)
             <tr>
                 <td>{{ $trx->id }}</td>
-                <td>{{ $trx->customer->name }}</td>
+                <td>
+                    @if($trx->customer)
+                        {{ $trx->customer->name }}
+                    @else
+                        {{ $trx->notes ?? 'Offline' }}
+                    @endif
+                </td>
                 <td>{{ $trx->date->format('d-m-Y H:i') }}</td>
                 <td>Rp {{ number_format($trx->total, 0, ',', '.') }}</td>
             </tr>
