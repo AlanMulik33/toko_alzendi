@@ -66,8 +66,6 @@ php artisan db:seed --force || true
 php artisan optimize:clear
 php artisan optimize
 
-
-
 # 6) Start supervisord (php-fpm + nginx)
 mkdir -p /var/lib/nginx/tmp /var/lib/nginx/tmp/fastcgi
 chown -R www-data:www-data /var/lib/nginx

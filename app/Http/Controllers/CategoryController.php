@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Category;
+use Illuminate\Validation\Rule;
+
 
 class CategoryController extends Controller
 {
@@ -29,10 +31,16 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate(['name'=>'required|unique:categories']);
-        Category::create($request->all());
+        $request->validate([
+            'name' => 'required|string|max:255|unique:categories,name',
+            'description' => 'nullable|string',
+        ]);
+
+        Category::create($request->only('name', 'description'));
+
         return redirect()->route('categories.index');
     }
+
 
     /**
      * Display the specified resource.
@@ -57,10 +65,21 @@ class CategoryController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $request->validate(['name'=>'required|unique:categories,name,'.$id]);
-        Category::findOrFail($id)->update($request->all());
+        $category = Category::findOrFail($id);
+
+        $request->validate([
+            'name' => [
+                'required',
+                Rule::unique('categories', 'name')->ignore($category->id),
+            ],
+            'description' => 'nullable',
+        ]);
+
+        $category->update($request->only('name', 'description'));
+
         return redirect()->route('categories.index');
     }
+
 
     /**
      * Remove the specified resource from storage.
