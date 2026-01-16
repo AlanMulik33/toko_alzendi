@@ -190,62 +190,55 @@
                     </div>
                     <div class="card-body p-4">
                         <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-check form-check-inline mb-3">
-                                    <input class="form-check-input" type="radio" name="payment_method" 
-                                           id="paymentCash" value="cash" checked 
-                                           onchange="updatePaymentPreview()">
-                                    <label class="form-check-label fw-bold" for="paymentCash">
-                                        <i class="bi bi-cash-coin me-2"></i>Cash / Tunai
-                                    </label>
-                                </div>
-                                <div class="form-check form-check-inline mb-3">
-                                    <input class="form-check-input" type="radio" name="payment_method" 
-                                           id="paymentQris" value="qris" 
-                                           onchange="updatePaymentPreview()">
-                                    <label class="form-check-label fw-bold" for="paymentQris">
-                                        <i class="bi bi-qr-code me-2"></i>QRIS
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <!-- QRIS Preview (Hidden by default) -->
-                                <div id="qrisPreviewCard" class="card mt-3" style="display: none; border: 2px solid var(--primary);">
+                            <div class="col-md-12">
+                                <!-- QRIS Preview (Always shown) -->
+                                <div id="qrisPreviewCard" class="card mt-3" style="border: 2px solid var(--primary);">
                                     <div class="card-header bg-primary text-white">
-                                        <h5 class="mb-0"><i class="bi bi-qr-code-scan me-2"></i>Instruksi Pembayaran QRIS</h5>
+                                        <h5 class="mb-0"><i class="bi bi-qr-code-scan me-2"></i>Pembayaran QRIS</h5>
                                     </div>
                                     <div class="card-body text-center">
                                         <p class="text-muted mb-3">
                                             Scan kode QR di bawah untuk melakukan pembayaran
                                         </p>
                                         
-                                        <!-- QR Code Image -->
-                                        <div class="bg-light rounded p-3 mb-3 border">
+                                        <!-- QR Code Image - Larger Size -->
+                                        <div class="bg-light rounded p-4 mb-4 border d-flex justify-content-center">
                                             <img id="qrisImage" src="{{ route('qris.image') }}" 
-                                                 alt="QRIS Code" style="width: 200px; height: 200px; object-fit: contain;">
+                                                 alt="QRIS Code" style="width: 300px; height: 300px; object-fit: contain;">
                                         </div>
                                         
                                         <!-- Amount -->
-                                        <div class="bg-success bg-opacity-10 rounded p-3 mb-3 border-start border-4 border-success">
+                                        <div class="bg-success bg-opacity-10 rounded p-3 mb-4 border-start border-4 border-success">
                                             <div class="text-muted small mb-1">Total Pembayaran</div>
-                                            <div class="fs-4 fw-bold text-success">
+                                            <div class="fs-3 fw-bold text-success">
                                                 Rp <span id="qrisAmount">0</span>
                                             </div>
                                         </div>
                                         
+                                        <!-- Payment Method (Fixed as QRIS) -->
+                                        <input type="hidden" name="payment_method" value="qris">
+                                        
                                         <!-- Instructions -->
                                         <div class="bg-warning bg-opacity-10 rounded p-3 border-start border-4 border-warning text-start">
                                             <div class="fw-bold mb-2 text-warning">
-                                                <i class="bi bi-info-circle me-1"></i>Cara Pembayaran:
+                                                <i class="bi bi-info-circle me-1"></i>Cara Pembayaran QRIS:
                                             </div>
-                                            <ol class="mb-0 text-muted small">
-                                                <li>Buka aplikasi e-wallet atau mobile banking</li>
-                                                <li>Pilih fitur "Scan QRIS"</li>
-                                                <li>Scan kode QR di atas</li>
-                                                <li>Verifikasi nominal pembayaran</li>
-                                                <li>Konfirmasi transaksi</li>
-                                                <li>Simpan bukti pembayaran</li>
+                                            <ol class="mb-0 text-muted">
+                                                <li>Buka aplikasi e-wallet atau mobile banking (GoPay, OVO, DANA, LinkAja, dll)</li>
+                                                <li>Pilih fitur <strong>"Scan QRIS"</strong> atau <strong>"Bayar dengan QR"</strong></li>
+                                                <li>Scan kode QR di atas dengan kamera</li>
+                                                <li>Verifikasi nominal pembayaran: <strong>Rp <span id="qrisAmountInstruction">0</span></strong></li>
+                                                <li>Konfirmasi dan selesaikan transaksi</li>
+                                                <li>Simpan bukti pembayaran untuk verifikasi</li>
                                             </ol>
+                                        </div>
+                                        
+                                        <!-- Info -->
+                                        <div class="mt-4 pt-3 border-top">
+                                            <div class="alert alert-info alert-custom">
+                                                <i class="bi bi-exclamation-circle me-2"></i>
+                                                <strong>Perhatian:</strong> Setelah melakukan pembayaran, silakan upload bukti pembayaran di halaman detail transaksi.
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -274,7 +267,10 @@
                             <small class="text-muted d-block">
                                 <i class="bi bi-info-circle me-1"></i>Metode Pembayaran:
                             </small>
-                            <span class="fw-bold" id="paymentMethodDisplay">Cash / Tunai</span>
+                            <div class="d-flex align-items-center mt-2">
+                                <i class="bi bi-qr-code text-primary me-2"></i>
+                                <span class="fw-bold">QRIS</span>
+                            </div>
                         </div>
                         
                         <button type="submit" class="btn btn-primary-custom w-100 py-3">
@@ -320,11 +316,6 @@
         background-color: rgba(67, 97, 238, 0.05);
     }
     
-    .form-check-input:checked {
-        background-color: var(--primary);
-        border-color: var(--primary);
-    }
-    
     #emptyItemsState {
         display: none;
     }
@@ -332,6 +323,18 @@
     .form-control-custom:read-only {
         background-color: #f8f9fa;
         cursor: not-allowed;
+    }
+    
+    #qrisImage {
+        max-width: 100%;
+        height: auto;
+    }
+    
+    @media (max-width: 768px) {
+        #qrisImage {
+            width: 250px !important;
+            height: 250px !important;
+        }
     }
 </style>
 
@@ -395,7 +398,6 @@ function addItem() {
     document.getElementById('itemsBody').insertAdjacentHTML('beforeend', row);
     showEmptyState(false);
     updateRow(rowCount);
-    updatePaymentMethodDisplay();
 }
 
 function updateRow(rowNum) {
@@ -430,7 +432,6 @@ function updateRow(rowNum) {
     }
     
     updateTotal();
-    updatePaymentMethodDisplay();
 }
 
 function removeRow(rowNum) {
@@ -446,7 +447,6 @@ function removeRow(rowNum) {
     }
     
     updateTotal();
-    updatePaymentMethodDisplay();
 }
 
 function updateTotal() {
@@ -487,37 +487,14 @@ function updateTotal() {
     document.getElementById('totalInput').value = totalAmount;
     document.getElementById('itemsInput').value = JSON.stringify(items);
     
-    // Update QRIS amount
+    // Update QRIS amount (always visible)
     const qrisAmount = document.getElementById('qrisAmount');
+    const qrisAmountInstruction = document.getElementById('qrisAmountInstruction');
     if (qrisAmount) {
         qrisAmount.textContent = totalAmount.toLocaleString('id-ID');
     }
-}
-
-function updatePaymentPreview() {
-    const isQris = document.getElementById('paymentQris').checked;
-    const qrisPreviewCard = document.getElementById('qrisPreviewCard');
-    const totalAmount = parseFloat(document.getElementById('totalInput').value) || 0;
-    
-    if (isQris) {
-        qrisPreviewCard.style.display = 'block';
-        document.getElementById('qrisAmount').textContent = totalAmount.toLocaleString('id-ID');
-    } else {
-        qrisPreviewCard.style.display = 'none';
-    }
-    
-    updatePaymentMethodDisplay();
-}
-
-function updatePaymentMethodDisplay() {
-    const paymentMethod = document.querySelector('input[name="payment_method"]:checked');
-    const display = document.getElementById('paymentMethodDisplay');
-    if (paymentMethod && display) {
-        if (paymentMethod.value === 'cash') {
-            display.textContent = 'Cash / Tunai';
-        } else {
-            display.textContent = 'QRIS';
-        }
+    if (qrisAmountInstruction) {
+        qrisAmountInstruction.textContent = totalAmount.toLocaleString('id-ID');
     }
 }
 
@@ -587,12 +564,14 @@ document.getElementById('transactionForm').addEventListener('submit', function(e
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
     showEmptyState(true);
-    updatePaymentMethodDisplay();
     
     // Auto-add first item if it's a fresh form
     if (!sessionStorage.getItem('transactionFormState')) {
         addItem();
     }
+    
+    // Update QRIS amount on load
+    updateTotal();
 });
 </script>
 @endsection
