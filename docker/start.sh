@@ -1,17 +1,24 @@
 #!/bin/sh
 set -euo pipefail
 
-PORT="${PORT:-8080}"
+if [ -z "$PORT" ]; then
+  echo "PORT not set by Railway"
+  exit 1
+fi
+
 echo "Starting Toko Alzendi - using PORT=${PORT}"
 
 # 1) Generate nginx.conf from template: replace LISTEN_PORT with actual $PORT
-if [ -f /var/www/html/docker/nginx.conf ]; then
-  echo "Generating /etc/nginx/nginx.conf from template (PORT=${PORT})..."
-  sed "s/LISTEN_PORT/${PORT}/g" /var/www/html/docker/nginx.conf > /etc/nginx/nginx.conf
-else
-  echo "ERROR: docker/nginx.conf template not found!"
+NGINX_TEMPLATE="/var/www/html/docker/nginx.conf"
+
+if [ ! -f "$NGINX_TEMPLATE" ]; then
+  echo "ERROR: nginx template not found at $NGINX_TEMPLATE"
   exit 1
 fi
+
+echo "Generating /etc/nginx/nginx.conf from template (PORT=${PORT})..."
+sed "s/LISTEN_PORT/${PORT}/g" "$NGINX_TEMPLATE" > /etc/nginx/nginx.conf
+
 
 # 2) Ensure directories & ownership
 mkdir -p /var/run/php-fpm /var/www/html/storage/logs /var/www/html/bootstrap/cache /var/run/nginx
