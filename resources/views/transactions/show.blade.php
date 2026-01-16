@@ -252,7 +252,8 @@
                                     <div class="border rounded p-3 bg-white">
                                         <a href="{{ $transaction->payment_proof }}" target="_blank">
                                             <img src="{{ $transaction->payment_proof }}"
-                                                alt="Bukti Pembayaran" style="max-width: 100%; max-height: 200px; object-fit: contain;">
+                                                alt="Bukti Pembayaran" 
+                                                style="max-width: 100%; max-height: 200px; object-fit: contain;">
                                         </a>
                                     </div>
                                 </div>
