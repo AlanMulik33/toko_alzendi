@@ -17,7 +17,7 @@
                     
                     <!-- QR Code -->
                     <div style="margin: 30px 0; padding: 30px; background-color: #f8f9fa; border-radius: 8px; border: 2px solid #17a2b8;">
-                        <img src="{{ asset('qris.jpg') }}" alt="QRIS Code" style="width: 350px; height: 350px; object-fit: contain;">
+                        <img src="{{ asset('qris.jpg') }}" class="img-fluid mx-auto d-block" style="max-width:350px;">
                     </div>
                     
                     <!-- Merchant Info -->

@@ -203,7 +203,7 @@
                                         
                                         <!-- QR Code Image - Larger Size -->
                                         <div class="bg-light rounded p-4 mb-4 border d-flex justify-content-center">
-                                            <img id="qrisImage" src="{{ route('qris.image') }}" 
+                                            <img id="qrisImage" src="{{ asset('qris.jpg') }}" 
                                                  alt="QRIS Code" style="width: 300px; height: 300px; object-fit: contain;">
                                         </div>
                                         
@@ -273,6 +273,8 @@
                             </div>
                         </div>
                         
+                        <input type="hidden" id="totalInput" name="total" value="0">
+                        <input type="hidden" id="itemsInput" name="items" value="[]">
                         <button type="submit" class="btn btn-primary-custom w-100 py-3">
                             <i class="bi bi-check-circle me-2"></i>Simpan Transaksi
                         </button>
@@ -287,8 +289,6 @@
 </div>
 
 <!-- Hidden Inputs for Form Data -->
-<input type="hidden" id="totalInput" name="total" value="0">
-<input type="hidden" id="itemsInput" name="items" value="[]">
 
 <style>
     .table-custom tbody tr:hover {
