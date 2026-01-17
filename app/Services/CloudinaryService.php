@@ -6,21 +6,25 @@ use Cloudinary\Cloudinary;
 
 class CloudinaryService
 {
-    public static function upload($file, $folder)
+    protected static function cloudinary(): Cloudinary
     {
-        $cloudinary = new Cloudinary([
-            'cloudinary' => [
-                'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
-                'api_key'    => env('CLOUDINARY_API_KEY'),
-                'api_secret' => env('CLOUDINARY_API_SECRET'),
+        return new Cloudinary([
+            'cloud' => [
+                'cloud_name' => config('services.cloudinary.cloud_name'),
+                'api_key'    => config('services.cloudinary.api_key'),
+                'api_secret' => config('services.cloudinary.api_secret'),
             ],
         ]);
+    }
+
+    public static function upload($file, string $folder): string
+    {
+        $cloudinary = self::cloudinary();
 
         $result = $cloudinary->uploadApi()->upload(
             $file->getRealPath(),
             [
                 'folder' => $folder,
-                'resource_type' => 'image'
             ]
         );
 

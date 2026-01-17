@@ -286,31 +286,29 @@ class TransactionController extends Controller
                 return back()->with('success', 'Pesanan telah dikonfirmasi selesai!');
             }
             // QRIS: upload bukti pembayaran
-            if ($request->input('action') === 'pay' && $transaction->status === 'pending' && $transaction->payment_method === 'qris') {
-                if (
-                        $request->input('action') === 'pay' &&
-                        $transaction->status === 'pending' &&
-                        $transaction->payment_method === 'qris'
-                    ) {
-                        $request->validate([
-                            'payment_proof' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-                        ]);
+            if (
+                auth('customer')->check() &&
+                $request->input('action') === 'pay' &&
+                $transaction->status === 'pending' &&
+                $transaction->payment_method === 'qris'
+            ) {
+                $request->validate([
+                    'payment_proof' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+                ]);
 
-                        $imageUrl = CloudinaryService::upload(
-                            $request->file('payment_proof'),
-                            'payment_proofs'
-                        );
+                $imageUrl = CloudinaryService::upload(
+                    $request->file('payment_proof'),
+                    'payment_proofs'
+                );
 
-                        $transaction->update([
-                            'payment_proof' => $imageUrl,
-                        ]);
+                $transaction->update([
+                    'payment_proof' => $imageUrl,
+                ]);
 
-                        return back()->with(
-                            'success',
-                            'Bukti pembayaran berhasil diupload! Menunggu verifikasi admin.'
-                        );
-                    }
-
+                return back()->with(
+                    'success',
+                    'Bukti pembayaran berhasil diupload! Menunggu verifikasi admin.'
+                );
             }
         }
         return back()->with('error', 'Aksi tidak valid atau status tidak sesuai.');
